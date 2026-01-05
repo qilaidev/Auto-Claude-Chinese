@@ -5,6 +5,13 @@
 /**
  * GitHub Release API response (partial)
  */
+export interface GitHubReleaseAsset {
+  name: string;
+  browser_download_url: string;
+  size?: number;
+  content_type?: string;
+}
+
 export interface GitHubRelease {
   tag_name: string;
   name: string;
@@ -14,6 +21,7 @@ export interface GitHubRelease {
   published_at: string;
   prerelease: boolean;
   draft: boolean;
+  assets?: GitHubReleaseAsset[];
 }
 
 /**

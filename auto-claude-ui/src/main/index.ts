@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, nativeImage } from 'electron';
+import { app, BrowserWindow, shell, nativeImage, session } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { setupIpcHandlers } from './ipc-setup';
@@ -9,6 +9,10 @@ import { getUsageMonitor } from './claude-profile/usage-monitor';
 import { initializeUsageMonitorForwarding } from './ipc-handlers/terminal-handlers';
 import { initializeAppUpdater } from './app-updater';
 import { isSafeExternalUrl } from './ipc-handlers/utils';
+import { setupErrorLogging } from './app-logger';
+
+// Setup error logging early (captures uncaught exceptions)
+setupErrorLogging();
 
 // Get icon path based on platform
 function getIconPath(): string {
@@ -98,10 +102,24 @@ if (process.platform === 'darwin') {
   app.name = 'Auto Claude';
 }
 
+// Fix Windows GPU cache permission errors (0x5 Access Denied)
+if (process.platform === 'win32') {
+  app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
+  app.commandLine.appendSwitch('disable-gpu-program-cache');
+  console.log('[main] Applied Windows GPU cache fixes');
+}
+
 // Initialize the application
 app.whenReady().then(() => {
   // Set app user model id for Windows
   electronApp.setAppUserModelId('com.autoclaude.ui');
+
+  // Clear cache on Windows to prevent permission errors from stale cache
+  if (process.platform === 'win32') {
+    session.defaultSession.clearCache()
+      .then(() => console.log('[main] Cleared cache on startup'))
+      .catch((err) => console.warn('[main] Failed to clear cache:', err));
+  }
 
   // Set dock icon on macOS
   if (process.platform === 'darwin') {
@@ -202,11 +220,4 @@ app.on('before-quit', async () => {
   }
 });
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught exception:', error);
-});
-
-process.on('unhandledRejection', (reason) => {
-  console.error('Unhandled rejection:', reason);
-});
+// Errors are logged by setupErrorLogging() in app-logger.ts

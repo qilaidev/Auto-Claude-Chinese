@@ -2,8 +2,9 @@
  * Update installation and application
  */
 
-import { existsSync, mkdirSync, writeFileSync, rmSync, readdirSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync, rmSync, readdirSync, readFileSync, createReadStream } from 'fs';
 import path from 'path';
+import { createHash } from 'crypto';
 import { app } from 'electron';
 import { GITHUB_CONFIG, PRESERVE_FILES } from './config';
 import { downloadFileWithFallback, fetchJsonWithFallback } from './http-client';
@@ -11,7 +12,7 @@ import { parseVersionFromTag } from './version-manager';
 import { getUpdateCachePath, getUpdateTargetPath } from './path-resolver';
 import { extractTarball, copyDirectoryRecursive, preserveFiles, restoreFiles, cleanTargetDirectory } from './file-operations';
 import { getCachedRelease, setCachedRelease, clearCachedRelease } from './update-checker';
-import { GitHubRelease, AutoBuildUpdateResult, UpdateProgressCallback, UpdateMetadata } from './types';
+import { GitHubRelease, AutoBuildUpdateResult, UpdateProgressCallback, UpdateMetadata, GitHubReleaseAsset } from './types';
 import { debugLog } from '../../shared/utils/debug-logger';
 
 /**
@@ -87,6 +88,10 @@ export async function downloadAndApplyUpdate(
 
     debugLog('[Update] Download complete');
 
+    // Verify checksum if a checksum asset is published
+    const checksumPath = path.join(cachePath, 'auto-claude-update.sha256');
+    await verifyChecksumIfAvailable(release, tarballPath, checksumPath);
+
     onProgress?.({
       stage: 'extracting',
       message: 'Extracting update...'
@@ -148,6 +153,7 @@ export async function downloadAndApplyUpdate(
 
     // Cleanup
     rmSync(tarballPath, { force: true });
+    rmSync(checksumPath, { force: true });
     rmSync(extractPath, { recursive: true, force: true });
 
     onProgress?.({
@@ -182,6 +188,101 @@ export async function downloadAndApplyUpdate(
       error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
+}
+
+function findChecksumAsset(release: GitHubRelease): GitHubReleaseAsset | null {
+  const assets = release.assets || [];
+  if (assets.length === 0) {
+    return null;
+  }
+
+  const checksumAsset = assets.find(asset => /\.sha256(\.txt)?$/i.test(asset.name))
+    || assets.find(asset => /sha256/i.test(asset.name));
+
+  return checksumAsset || null;
+}
+
+function extractSha256(content: string, tarballName: string): string | null {
+  const lines = content.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  let fallbackHash: string | null = null;
+
+  for (const line of lines) {
+    // Common formats:
+    // 1) <hash>  <filename>
+    // 2) SHA256 (filename) = <hash>
+    const directMatch = line.match(/([a-fA-F0-9]{64})(?:\s+(.+))?/);
+    if (directMatch) {
+      const hash = directMatch[1].toLowerCase();
+      const filePart = (directMatch[2] || '').trim();
+      if (!filePart) {
+        return hash;
+      }
+      if (filePart.includes(tarballName)) {
+        return hash;
+      }
+      if (!fallbackHash) {
+        fallbackHash = hash;
+      }
+    }
+
+    const namedMatch = line.match(/SHA256\s*\((.+)\)\s*=\s*([a-fA-F0-9]{64})/i);
+    if (namedMatch) {
+      const fileName = namedMatch[1];
+      const hash = namedMatch[2].toLowerCase();
+      if (fileName.includes(tarballName)) {
+        return hash;
+      }
+      if (!fallbackHash) {
+        fallbackHash = hash;
+      }
+    }
+  }
+
+  return fallbackHash;
+}
+
+async function hashFileSha256(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = createHash('sha256');
+    const stream = createReadStream(filePath);
+
+    stream.on('data', (chunk) => hash.update(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(hash.digest('hex')));
+  });
+}
+
+async function verifyChecksumIfAvailable(
+  release: GitHubRelease,
+  tarballPath: string,
+  checksumPath: string
+): Promise<void> {
+  const checksumAsset = findChecksumAsset(release);
+  if (!checksumAsset) {
+    debugLog('[Update] No checksum asset found; skipping verification');
+    return;
+  }
+
+  debugLog('[Update] Found checksum asset:', checksumAsset.name);
+  await downloadFileWithFallback(
+    checksumAsset.browser_download_url,
+    checksumPath,
+    undefined,
+    GITHUB_CONFIG.proxyBase
+  );
+
+  const checksumContent = readFileSync(checksumPath, 'utf-8');
+  const expectedHash = extractSha256(checksumContent, path.basename(tarballPath));
+  if (!expectedHash) {
+    throw new Error('Checksum file found but no valid SHA256 hash could be parsed');
+  }
+
+  const actualHash = await hashFileSha256(tarballPath);
+  if (actualHash !== expectedHash) {
+    throw new Error('Checksum verification failed for downloaded update');
+  }
+
+  debugLog('[Update] Checksum verification passed');
 }
 
 /**

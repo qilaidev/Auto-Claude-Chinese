@@ -30,12 +30,20 @@ export const DEFAULT_GITHUB_PROXY = 'https://mirror.ghproxy.com';
 /**
  * Files and directories to preserve during updates
  */
-export const PRESERVE_FILES = ['.env', 'specs'] as const;
+export const PRESERVE_FILES = ['.env', 'specs', '.auto-claude', '.worktrees'] as const;
 
 /**
  * Files and directories to skip when copying
  */
-export const SKIP_FILES = ['__pycache__', '.DS_Store', '.git', 'specs', '.env'] as const;
+export const SKIP_FILES = [
+  '__pycache__',
+  '.DS_Store',
+  '.git',
+  'specs',
+  '.env',
+  '.auto-claude',
+  '.worktrees'
+] as const;
 
 /**
  * Update-related timeouts (in milliseconds)
