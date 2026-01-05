@@ -1,5 +1,9 @@
 # Auto Claude Guides
 
+**上游仓库**: https://github.com/AndyMik90/Auto-Claude
+
+本仓库是 Auto-Claude 的中文版本分支，专注于为中文用户提供更好的体验。
+
 Detailed documentation for Auto Claude setup and usage.
 
 ## Available Guides

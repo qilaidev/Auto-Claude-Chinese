@@ -2,6 +2,8 @@
 
 使用 Auto Claude 自主编码框架管理 AI 驱动开发任务的桌面应用程序。
 
+**上游仓库**: https://github.com/AndyMik90/Auto-Claude
+
 ## 快速开始
 
 ```bash

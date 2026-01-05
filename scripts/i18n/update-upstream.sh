@@ -15,7 +15,7 @@ fi
 # 添加上游仓库（如果还没有添加）
 if ! git remote | grep -q "upstream"; then
     echo "添加上游仓库..."
-    git remote add upstream https://github.com/cyanheads/auto-claude.git
+    git remote add upstream https://github.com/AndyMik90/Auto-Claude
 fi
 
 # 获取上游更新

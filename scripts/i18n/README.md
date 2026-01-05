@@ -2,6 +2,8 @@
 
 本目录包含用于维护 Auto-Claude 中文版本的脚本和文档。
 
+**上游仓库**: https://github.com/AndyMik90/Auto-Claude
+
 ## 目录结构
 
 ```
