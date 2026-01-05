@@ -1,5 +1,7 @@
 # Auto Claude Backend
 
+> 注意：`apps/` 为历史/实验目录，生产与发布请以 `auto-claude/` 为准。
+
 Autonomous coding framework powered by Claude AI. Builds software features through coordinated multi-agent sessions.
 
 ## Getting Started

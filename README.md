@@ -41,6 +41,11 @@ Your AI coding companion. Build features, fix bugs, and ship faster — with aut
 - 上游更新后先合并代码，再补齐中文提示词
 - 中文维护脚本与说明见 `scripts/i18n/README.md`
 
+## 仓库结构（重要）
+
+- **生产/发布基准**：`auto-claude/`（后端）与 `auto-claude-ui/`（桌面端）
+- `apps/` 目录为历史/实验保留，不参与生产发布与 CI 流程
+
 ## What It Does ✨
 
 **Auto Claude is a desktop app that supercharges your AI coding workflow.** Whether you're a vibe coder just getting started or an experienced developer, Auto Claude meets you where you are.
@@ -69,7 +74,7 @@ The Desktop UI is the recommended way to use Auto Claude. It provides visual tas
 
 ### Prerequisites
 
-1. **Node.js 18+** - [Download Node.js](https://nodejs.org/)
+1. **Node.js 20+** - [Download Node.js](https://nodejs.org/)
 2. **Python 3.10+** - [Download Python](https://www.python.org/downloads/)
 3. **Docker Desktop** - Required for the Memory Layer
 4. **Claude Code CLI** - `npm install -g @anthropic-ai/claude-code`

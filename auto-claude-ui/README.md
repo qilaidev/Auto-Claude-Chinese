@@ -27,7 +27,7 @@ npm run package:linux  # Linux
 
 ## 前置要求
 
-- Node.js 18+
+- Node.js 20+
 - npm 或 pnpm
 - Python 3.10+（用于 auto-claude 后端）
 - **仅 Windows**：Visual Studio Build Tools 2022，需安装"使用 C++ 的桌面开发"工作负载

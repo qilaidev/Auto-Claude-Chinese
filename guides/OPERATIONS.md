@@ -12,7 +12,7 @@ for long-term use without changing its architecture.
 
 - Git installed and the target project is a git repo.
 - Python 3.10+ for the backend.
-- Node.js 18+ for the Desktop UI (optional).
+- Node.js 20+ for the Desktop UI (optional).
 - Docker Desktop only if you enable Graphiti memory (optional).
 
 ## Configuration Baseline
@@ -36,6 +36,7 @@ for long-term use without changing its architecture.
 
 - **Build status file**: `.auto-claude-status` in the project root.
 - **Per-spec logs**: `.auto-claude/specs/<spec>/task_logs.json`.
+- **Desktop UI main logs**: OS log directory (Auto-Claude/main.log).
 - **Optional runtime log** (if enabled): `AUTO_CLAUDE_LOG_FILE` or `AUTO_CLAUDE_LOG_DIR`.
 
 ## Health Checks

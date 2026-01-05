@@ -24,7 +24,7 @@ Thank you for your interest in contributing to Auto Claude! This document provid
 Before contributing, ensure you have the following installed:
 
 - **Python 3.8+** - For the backend framework
-- **Node.js 18+** - For the Electron frontend
+- **Node.js 20+** - For the Electron frontend
 - **pnpm** - Package manager for the frontend (`npm install -g pnpm`)
 - **uv** (recommended) or **pip** - Python package manager
 - **Git** - Version control

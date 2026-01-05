@@ -1,5 +1,7 @@
 # Auto Claude UI - Frontend
 
+> 注意：`apps/` 为历史/实验目录，生产与发布请以 `auto-claude-ui/` 为准。
+
 A modern Electron + React desktop application for the Auto Claude autonomous coding framework.
 
 ## Prerequisites
