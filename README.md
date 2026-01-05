@@ -8,12 +8,37 @@ Your AI coding companion. Build features, fix bugs, and ship faster — with aut
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/KCXaPBr4Dj)
 
-## 中文优先版本说明
+## 本地特色 (Chinese Fork Features)
 
-- 本仓库为 Auto-Claude-Chinese，面向中文使用场景做了提示词与流程优化
-- 默认使用中文提示词，需英文时在 `auto-claude/.env` 中设置 `PROMPT_LANGUAGE=en`
-- 不引入 i18n 框架，直接翻译 UI 文本与提示词内容，保留命令/路径/变量为英文
-- 上游更新后先合并代码，再补齐中文提示词与 UI 文本，确保新功能中文覆盖
+本仓库为 Auto-Claude-Chinese，相比上游有两大核心特色：
+
+### 1. 全面中文汉化
+
+- **默认中文提示词**：`PROMPT_LANGUAGE=zh-CN`，所有 Agent 提示词默认使用中文
+- **44 个中文提示词**：覆盖核心流程（24 个）+ GitHub PR 审查（20 个）
+- **自动回退机制**：中文提示词缺失时自动使用英文版本
+- **切换语言**：在 `auto-claude/.env` 中设置 `PROMPT_LANGUAGE=en` 可切换回英文
+
+### 2. 直接调用本地已认证的 Claude
+
+**无需额外配置 API Key**，直接复用本地 `claude` CLI 的认证状态：
+
+```
+认证优先级（从高到低）：
+1. 环境变量 CLAUDE_CODE_OAUTH_TOKEN（官方 OAuth）
+2. ~/.claude/settings.json（第三方渠道如云翼）
+3. macOS Keychain（官方 OAuth 自动存储）
+```
+
+**优势**：
+- 无需手动管理 API Key
+- 支持第三方激活渠道（如云翼）
+- 与 Claude Code CLI 共享认证状态
+
+### 维护说明
+
+- 不引入 i18n 框架，直接翻译 UI 文本与提示词内容
+- 上游更新后先合并代码，再补齐中文提示词
 - 中文维护脚本与说明见 `scripts/i18n/README.md`
 
 ## What It Does ✨

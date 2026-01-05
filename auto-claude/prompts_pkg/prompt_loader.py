@@ -1,9 +1,21 @@
 """
 Multilingual Prompt Loader
+多语言提示词加载器
 ===========================
+
+=== 本地特色：全面中文汉化 ===
+
+本模块是 Auto-Claude-Chinese 的核心特色之一。
+默认使用中文提示词（PROMPT_LANGUAGE=zh-CN），缺失时自动回退英文。
 
 Centralized utility for loading prompt files with language support.
 Supports fallback from localized prompts to English defaults.
+
+中文提示词覆盖：
+- 核心流程提示词：24 个（planner, coder, qa_reviewer 等）
+- GitHub PR 审查提示词：20 个（pr_reviewer, security_agent 等）
+
+切换语言：设置环境变量 PROMPT_LANGUAGE=en 可切换回英文。
 """
 
 import os

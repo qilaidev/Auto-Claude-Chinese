@@ -1,18 +1,28 @@
 """
 Authentication helpers for Auto Claude.
+Auto Claude 认证辅助模块。
+
+=== 本地特色：直接调用本地已认证的 Claude ===
+
+本模块是 Auto-Claude-Chinese 的核心特色之一。
+无需额外配置 API Key，直接复用本地 claude CLI 的认证状态。
 
 Provides centralized authentication token resolution with fallback support
 for multiple sources including:
-- Environment variables
-- Claude Code settings.json (third-party auth tokens)
-- macOS Keychain (official OAuth)
+- Environment variables (环境变量)
+- Claude Code settings.json (third-party auth tokens, 第三方认证)
+- macOS Keychain (official OAuth, 官方 OAuth)
 
-Credential Priority Order:
+Credential Priority Order (认证优先级，从高到低):
 1. Environment variables (CLAUDE_CODE_OAUTH_TOKEN, ANTHROPIC_AUTH_TOKEN)
+   环境变量 - 最高优先级
 2. ~/.claude/settings.json (third-party auth like yunyi)
+   第三方渠道配置（如云翼）
 3. macOS Keychain (official Claude Code OAuth)
+   macOS 钥匙串（官方 OAuth 自动存储）
 
 This design ensures third-party activation channels work reliably.
+此设计确保第三方激活渠道可靠工作，用户无需手动管理 API Key。
 """
 
 import json

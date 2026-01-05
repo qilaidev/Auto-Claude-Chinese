@@ -6,6 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Auto Claude is a multi-agent autonomous coding framework that builds software through coordinated AI agent sessions. It uses the Claude Code SDK to run agents in isolated workspaces with security controls.
 
+## 本地特色 (Chinese Fork Features)
+
+本仓库为 Auto-Claude-Chinese，相比上游有两大核心特色：
+
+### 1. 全面中文汉化
+- 默认中文提示词：`PROMPT_LANGUAGE=zh-CN`
+- 44 个中文提示词：核心流程（24 个）+ GitHub PR 审查（20 个）
+- 关键文件：`prompts_pkg/prompt_loader.py`
+
+### 2. 直接调用本地已认证的 Claude
+- 无需额外配置 API Key，复用本地 `claude` CLI 认证
+- 支持第三方渠道（如云翼）
+- 关键文件：`core/auth.py`
+
 ## Commands
 
 ### Setup
