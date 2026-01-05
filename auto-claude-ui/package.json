@@ -5,6 +5,10 @@
   "main": "./out/main/index.js",
   "author": "Auto Claude Team",
   "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
     "dev": "electron-vite dev",
@@ -58,6 +62,7 @@
     "chokidar": "^5.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "electron-log": "^5.4.3",
     "electron-updater": "^6.6.2",
     "ioredis": "^5.8.2",
     "lucide-react": "^0.560.0",
