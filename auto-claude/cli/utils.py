@@ -19,9 +19,7 @@ if str(_PARENT_DIR) not in sys.path:
 from core.auth import get_auth_token, get_auth_token_source
 from dotenv import load_dotenv
 from graphiti_config import get_graphiti_status
-from linear_integration import LinearManager
-from linear_updater import is_linear_enabled
-from spec.pipeline import get_specs_dir
+from init import init_auto_claude_dir
 from ui import (
     Icons,
     bold,
@@ -32,6 +30,13 @@ from ui import (
 
 # Configuration
 DEFAULT_MODEL = "claude-opus-4-5-20251101"
+
+
+def get_specs_dir(project_dir: Path, dev_mode: bool = False) -> Path:
+    """Return the spec directory path under .auto-claude/."""
+    del dev_mode
+    init_auto_claude_dir(project_dir)
+    return project_dir / ".auto-claude" / "specs"
 
 
 def setup_environment() -> Path:
@@ -190,21 +195,25 @@ def validate_environment(spec_dir: Path, project_dir: Path | None = None) -> boo
         valid = False
 
     # Check Linear integration (optional but show status)
-    if is_linear_enabled():
+    if os.environ.get("LINEAR_API_KEY"):
         print("Linear integration: ENABLED")
-        # Show Linear project status if initialized
-        project_dir = (
-            spec_dir.parent.parent
-        )  # auto-claude/specs/001-name -> project root
-        linear_manager = LinearManager(spec_dir, project_dir)
-        if linear_manager.is_initialized:
-            summary = linear_manager.get_progress_summary()
-            print(f"  Project: {summary.get('project_name', 'Unknown')}")
+        try:
+            from linear_integration import LinearManager
+
+            linear_manager = LinearManager(spec_dir, spec_dir.parent.parent)
+            if linear_manager.is_initialized:
+                summary = linear_manager.get_progress_summary()
+                print(f"  Project: {summary.get('project_name', 'Unknown')}")
+                print(
+                    f"  Issues: {summary.get('mapped_subtasks', 0)}/{summary.get('total_subtasks', 0)} mapped"
+                )
+            else:
+                print("  Status: Will be initialized during planner session")
+        except Exception as linear_error:
             print(
-                f"  Issues: {summary.get('mapped_subtasks', 0)}/{summary.get('total_subtasks', 0)} mapped"
+                "  Status: unavailable "
+                f"({type(linear_error).__name__}: {linear_error})"
             )
-        else:
-            print("  Status: Will be initialized during planner session")
     else:
         print("Linear integration: DISABLED (set LINEAR_API_KEY to enable)")
 

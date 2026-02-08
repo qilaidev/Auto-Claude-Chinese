@@ -24,11 +24,6 @@ from ui import (
 from .build_commands import handle_build_command
 from .doctor_commands import handle_doctor_command
 from .followup_commands import handle_followup_command
-from .qa_commands import (
-    handle_qa_command,
-    handle_qa_status_command,
-    handle_review_status_command,
-)
 from .spec_commands import print_specs_list
 from .utils import (
     DEFAULT_MODEL,
@@ -257,6 +252,14 @@ Environment Variables:
     return parser.parse_args()
 
 
+def _ensure_default_logging_env(project_dir: Path) -> None:
+    """Set a safe default operational log directory when none is configured."""
+    if os.environ.get("AUTO_CLAUDE_LOG_FILE") or os.environ.get("AUTO_CLAUDE_LOG_DIR"):
+        return
+
+    os.environ["AUTO_CLAUDE_LOG_DIR"] = str(project_dir / ".auto-claude" / "logs")
+
+
 def main() -> None:
     """Main CLI entry point."""
     # Set up environment first
@@ -273,6 +276,7 @@ def main() -> None:
 
     # Determine project directory
     project_dir = get_project_dir(args.project_dir)
+    _ensure_default_logging_env(project_dir)
     configure_logging(project_dir)
     debug("run.py", f"Using project directory: {project_dir}")
 
@@ -372,14 +376,20 @@ def main() -> None:
 
     # Handle QA commands
     if args.qa_status:
+        from .qa_commands import handle_qa_status_command
+
         handle_qa_status_command(spec_dir)
         return
 
     if args.review_status:
+        from .qa_commands import handle_review_status_command
+
         handle_review_status_command(spec_dir)
         return
 
     if args.qa:
+        from .qa_commands import handle_qa_command
+
         handle_qa_command(
             project_dir=project_dir,
             spec_dir=spec_dir,
