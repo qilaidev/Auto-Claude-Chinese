@@ -13,12 +13,12 @@ Auto Claude is a multi-agent autonomous coding framework that builds software th
 ### 1. 全面中文汉化
 - 默认中文提示词：`PROMPT_LANGUAGE=zh-CN`
 - 44 个中文提示词：核心流程（24 个）+ GitHub PR 审查（20 个）
-- 关键文件：`prompts_pkg/prompt_loader.py`
+- 关键文件：`auto-claude/prompts_pkg/prompt_loader.py`
 
 ### 2. 直接调用本地已认证的 Claude
 - 无需额外配置 API Key，复用本地 `claude` CLI 认证
 - 支持第三方渠道（如云翼）
-- 关键文件：`core/auth.py`
+- 关键文件：`auto-claude/core/auth.py`
 
 ## Commands
 
@@ -31,6 +31,7 @@ uv venv && uv pip install -r requirements.txt
 # Set up OAuth token
 claude setup-token
 # Add to auto-claude/.env: CLAUDE_CODE_OAUTH_TOKEN=your-token
+# 如果已通过本地 `claude` CLI 认证，可不手动设置该 token
 ```
 
 ### Creating and Running Specs
@@ -77,17 +78,18 @@ python auto-claude/run.py --spec 001 --qa-status
 # Install test dependencies (required first time)
 cd auto-claude && uv pip install -r ../tests/requirements-test.txt
 
+# The following commands assume you're in auto-claude/
 # Run all tests (use virtual environment pytest)
-auto-claude/.venv/bin/pytest tests/ -v
+.venv/bin/pytest ../tests/ -v
 
 # Run single test file
-auto-claude/.venv/bin/pytest tests/test_security.py -v
+.venv/bin/pytest ../tests/test_security.py -v
 
 # Run specific test
-auto-claude/.venv/bin/pytest tests/test_security.py::test_bash_command_validation -v
+.venv/bin/pytest ../tests/test_security.py::test_bash_command_validation -v
 
 # Skip slow tests
-auto-claude/.venv/bin/pytest tests/ -m "not slow"
+.venv/bin/pytest ../tests/ -m "not slow"
 ```
 
 ### Spec Validation
@@ -228,3 +230,4 @@ python auto-claude/run.py --spec 001
 - `auto-claude/` - Python backend/CLI (the framework code)
 - `auto-claude-ui/` - Optional Electron frontend
 - `.auto-claude/specs/` - Per-project data (specs, plans, QA reports) - gitignored
+- `apps/` - 历史/实验目录，不参与生产发布与 CI 流程

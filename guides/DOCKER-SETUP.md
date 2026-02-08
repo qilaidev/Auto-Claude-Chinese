@@ -32,6 +32,8 @@ docker run -d --name auto-claude-falkordb -p 6379:6379 falkordb/falkordb:latest
 docker ps | grep falkordb
 ```
 
+> **Production tip:** Pin a specific image tag (e.g. `falkordb/falkordb:<version>`) to avoid unexpected upgrades.
+
 ---
 
 ## What is Docker?
@@ -340,6 +342,28 @@ docker logs auto-claude-falkordb
 ---
 
 ## Advanced Configuration
+
+### Pin Image Version (Recommended)
+
+For stable production usage, pin the exact image tag you have validated:
+
+```bash
+docker run -d --name auto-claude-falkordb -p 6379:6379 falkordb/falkordb:<version>
+```
+
+If you use `docker-compose`, set image tags via environment variables:
+
+```bash
+export FALKORDB_IMAGE=falkordb/falkordb:<version>
+export GRAPHITI_MCP_IMAGE=falkordb/graphiti-knowledge-graph-mcp:<version>
+docker-compose up -d
+```
+
+For Desktop UI one-click startup, set:
+
+```bash
+export AUTO_CLAUDE_FALKORDB_IMAGE=falkordb/falkordb:<version>
+```
 
 ### Custom Port
 

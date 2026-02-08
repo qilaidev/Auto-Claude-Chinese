@@ -462,7 +462,7 @@ services:
       - auto-claude-net
 
   falkordb:
-    image: falkordb/falkordb:latest
+    image: ${FALKORDB_IMAGE:-falkordb/falkordb:latest}
     container_name: auto-claude-falkordb
     volumes:
       - falkordb-data:/data
@@ -475,7 +475,7 @@ services:
       retries: 5
 
   graphiti-mcp:
-    image: falkordb/graphiti-knowledge-graph-mcp:latest
+    image: ${GRAPHITI_MCP_IMAGE:-falkordb/graphiti-knowledge-graph-mcp:latest}
     container_name: auto-claude-graphiti
     platform: linux/amd64
     environment:
