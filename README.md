@@ -1,5 +1,10 @@
 # Auto-Claude-Chinese
 
+> Language / 语言：**[English](README.en.md)** | **[简体中文](README.zh-CN.md)**
+>
+> This file keeps a mixed-language overview for historical compatibility.
+> For better SEO and sharing, use the dedicated language docs above.
+
 Auto-Claude 中文增强版 — 默认使用中文提示词（`PROMPT_LANGUAGE=zh-CN`），缺失时自动回退英文。
 
 Your AI coding companion. Build features, fix bugs, and ship faster — with autonomous agents that plan, code, and validate for you.
