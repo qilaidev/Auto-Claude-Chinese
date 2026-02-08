@@ -15,6 +15,7 @@ _PARENT_DIR = Path(__file__).parent.parent
 if str(_PARENT_DIR) not in sys.path:
     sys.path.insert(0, str(_PARENT_DIR))
 
+from core.incident import write_incident_report
 from progress import count_subtasks, is_build_complete
 from ui import (
     Icons,
@@ -368,6 +369,18 @@ def handle_followup_command(
     except Exception as e:
         print()
         print(error(f"{icon(Icons.ERROR)} Follow-up planning error: {e}"))
+        incident_path = write_incident_report(
+            project_dir=project_dir,
+            component="followup",
+            error=e,
+            context={
+                "spec": spec_dir.name,
+                "model": model,
+                "command": "--followup",
+            },
+        )
+        if incident_path:
+            print(muted(f"Incident report: {incident_path}"))
         if verbose:
             import traceback
 

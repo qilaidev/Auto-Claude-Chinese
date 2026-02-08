@@ -17,6 +17,7 @@ This module has been refactored for better maintainability:
 Public API is exported via workspace/__init__.py for backward compatibility.
 """
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -83,6 +84,7 @@ from core.workspace.git_utils import (
     MAX_PARALLEL_AI_MERGES,
     _is_auto_claude_file,
     get_existing_build_worktree,
+    has_uncommitted_changes,
 )
 from core.workspace.git_utils import (
     get_changed_files_from_branch as _get_changed_files_from_branch,
@@ -107,6 +109,8 @@ from merge import (
 )
 
 MODULE = "workspace"
+
+ALLOW_DIRTY_MERGE_ENV = "AUTO_CLAUDE_ALLOW_DIRTY_MERGE"
 
 # The following functions are now imported from refactored modules above.
 # They are kept here only to avoid breaking the existing code that still needs
@@ -164,6 +168,35 @@ def merge_existing_build(
         print()
         print("To start a new build:")
         print(highlight(f"  python auto-claude/run.py --spec {spec_name}"))
+        return False
+
+    allow_dirty_merge = os.environ.get(ALLOW_DIRTY_MERGE_ENV, "").strip().lower()
+    allow_dirty_merge_enabled = allow_dirty_merge in {"1", "true", "yes", "on"}
+
+    # Safety rail: avoid mixing unrelated local changes with auto-claude merge results.
+    # This is especially important for no-commit merges where users expect staged output
+    # to contain only spec-related changes.
+    if has_uncommitted_changes(project_dir) and not allow_dirty_merge_enabled:
+        print()
+        print_status(
+            "Merge blocked: working tree has uncommitted changes.",
+            "warning",
+        )
+        print(muted("This prevents mixing unrelated edits into the merge result."))
+        print()
+        print("Please commit or stash your current changes, then retry:")
+        print(muted("  git status --short"))
+        print(
+            muted(
+                '  git stash push --include-untracked -m "pre-auto-claude-merge"'
+            )
+        )
+        print()
+        print(
+            muted(
+                f"To bypass this guard (not recommended), set {ALLOW_DIRTY_MERGE_ENV}=true"
+            )
+        )
         return False
 
     # Detect current branch - this is where user wants changes merged
@@ -1006,7 +1039,6 @@ def _resolve_git_conflicts_with_ai(
 
 import asyncio
 import logging
-import os
 
 _merge_logger = logging.getLogger(__name__)
 

@@ -5,10 +5,10 @@ Requirements and Research Phase Implementations
 Phases for requirements gathering, historical context, and research.
 """
 
-import json
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from core.file_io import atomic_write_json
 from task_logger import LogEntryType, LogPhase
 
 from .. import requirements, validator
@@ -86,18 +86,17 @@ class RequirementsPhaseMixin:
             )
 
             # Save hints to file
-            with open(hints_file, "w") as f:
-                json.dump(
-                    {
-                        "enabled": True,
-                        "query": task_query,
-                        "hints": hints,
-                        "hint_count": len(hints),
-                        "created_at": datetime.now().isoformat(),
-                    },
-                    f,
-                    indent=2,
-                )
+            atomic_write_json(
+                hints_file,
+                {
+                    "enabled": True,
+                    "query": task_query,
+                    "hints": hints,
+                    "hint_count": len(hints),
+                    "created_at": datetime.now().isoformat(),
+                },
+                indent=2,
+            )
 
             if hints:
                 self.ui.print_status(f"Retrieved {len(hints)} graph hints", "success")

@@ -8,6 +8,8 @@ Automated fixes for common implementation plan issues.
 import json
 from pathlib import Path
 
+from core.file_io import atomic_write_json
+
 
 def auto_fix_plan(spec_dir: Path) -> bool:
     """Attempt to auto-fix common implementation_plan.json issues.
@@ -73,8 +75,7 @@ def auto_fix_plan(spec_dir: Path) -> bool:
                 fixed = True
 
     if fixed:
-        with open(plan_file, "w") as f:
-            json.dump(plan, f, indent=2)
+        atomic_write_json(plan_file, plan, indent=2)
         print(f"Auto-fixed: {plan_file}")
 
     return fixed

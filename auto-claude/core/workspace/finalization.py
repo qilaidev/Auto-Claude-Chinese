@@ -9,6 +9,7 @@ Functions for finalizing workspaces and handling user choices after build comple
 import sys
 from pathlib import Path
 
+from core.backup import create_spec_backup, is_auto_backup_enabled
 from ui import (
     Icons,
     MenuOption,
@@ -343,6 +344,22 @@ def discard_existing_build(project_dir: Path, spec_name: str) -> bool:
         print_status("Cancelled. Your build is still saved.", "info")
         return False
 
+    # Create rollback backup before destructive deletion.
+    if is_auto_backup_enabled():
+        backup_path = create_spec_backup(project_dir, spec_name, reason="discard")
+        if backup_path:
+            print()
+            print_status(
+                f"Backup created: {backup_path.relative_to(project_dir)}",
+                "info",
+            )
+    else:
+        print()
+        print_status(
+            "Auto backup disabled by AUTO_CLAUDE_DISABLE_AUTO_BACKUP.",
+            "warning",
+        )
+
     # Actually delete
     manager.remove_worktree(spec_name, delete_branch=True)
 
@@ -486,6 +503,13 @@ def cleanup_all_worktrees(project_dir: Path, confirm: bool = True) -> bool:
 
     # Clean up all worktrees
     for wt in worktrees:
+        if is_auto_backup_enabled():
+            backup_path = create_spec_backup(project_dir, wt.spec_name, reason="cleanup")
+            if backup_path:
+                print_status(
+                    f"Backed up {wt.spec_name}: {backup_path.relative_to(project_dir)}",
+                    "info",
+                )
         manager.remove_worktree(wt.spec_name, delete_branch=True)
 
     print()

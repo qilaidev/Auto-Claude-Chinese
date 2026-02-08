@@ -84,10 +84,18 @@ class BuildStatus:
         workers = data.get("workers", {})
         session = data.get("session", {})
 
+        state_value = data.get("state", "idle")
+        try:
+            state = BuildState(state_value)
+        except ValueError:
+            # Forward/backward compatibility: unknown state from newer/older version.
+            # Keep statusline functional instead of failing to parse status file.
+            state = BuildState.IDLE
+
         return cls(
             active=data.get("active", False),
             spec=data.get("spec", ""),
-            state=BuildState(data.get("state", "idle")),
+            state=state,
             subtasks_completed=subtasks.get("completed", 0),
             subtasks_total=subtasks.get("total", 0),
             subtasks_in_progress=subtasks.get("in_progress", 0),

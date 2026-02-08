@@ -9,9 +9,11 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from core.file_io import atomic_write_json
+
 
 def create_minimal_plan(spec_dir: Path, task_description: str) -> Path:
-    """Create a minimal implementation plan for simple tasks."""
+    """Create a minimal implementation plan for simple tasks (atomic write)."""
     plan = {
         "spec_name": spec_dir.name,
         "workflow_type": "simple",
@@ -48,8 +50,7 @@ def create_minimal_plan(spec_dir: Path, task_description: str) -> Path:
     }
 
     plan_file = spec_dir / "implementation_plan.json"
-    with open(plan_file, "w") as f:
-        json.dump(plan, f, indent=2)
+    atomic_write_json(plan_file, plan, indent=2)
 
     return plan_file
 

@@ -139,13 +139,27 @@ def validate_environment(spec_dir: Path, project_dir: Path | None = None) -> boo
         print("Install: npm install -g @anthropic-ai/claude-code")
         valid = False
 
-    # Check for OAuth token (API keys are not supported)
+    # Enforce writable project directory early to avoid runtime failures.
+    if project_dir:
+        try:
+            project_dir.mkdir(parents=True, exist_ok=True)
+            probe = project_dir / ".auto-claude" / ".write-check"
+            probe.parent.mkdir(parents=True, exist_ok=True)
+            probe.write_text("ok", encoding="utf-8")
+            probe.unlink(missing_ok=True)
+        except OSError as e:
+            print("Error: project directory is not writable for Auto Claude.")
+            print(f"Path: {project_dir}")
+            print(f"Reason: {e}")
+            valid = False
+
+    # Check for auth token (OAuth, ANTHROPIC_AUTH_TOKEN, or ANTHROPIC_API_KEY)
     if not get_auth_token():
-        print("Error: No OAuth token found")
-        print("\nAuto Claude requires Claude Code OAuth authentication.")
-        print("Direct API keys (ANTHROPIC_API_KEY) are not supported.")
-        print("\nTo authenticate, run:")
-        print("  claude setup-token")
+        print("Error: No auth token found")
+        print("\nAuto Claude requires authentication.")
+        print("Supported methods:")
+        print("  - OAuth: run 'claude setup-token'")
+        print("  - Third-party: set ANTHROPIC_AUTH_TOKEN or ANTHROPIC_API_KEY in ~/.claude/settings.json")
         valid = False
     else:
         # Show which auth source is being used
@@ -162,6 +176,17 @@ def validate_environment(spec_dir: Path, project_dir: Path | None = None) -> boo
     spec_file = spec_dir / "spec.md"
     if not spec_file.exists():
         print(f"\nError: spec.md not found in {spec_dir}")
+        valid = False
+
+    # Validate critical write targets inside spec directory.
+    try:
+        spec_dir.mkdir(parents=True, exist_ok=True)
+        spec_probe = spec_dir / ".write-check"
+        spec_probe.write_text("ok", encoding="utf-8")
+        spec_probe.unlink(missing_ok=True)
+    except OSError as e:
+        print(f"\nError: spec directory is not writable: {spec_dir}")
+        print(f"Reason: {e}")
         valid = False
 
     # Check Linear integration (optional but show status)

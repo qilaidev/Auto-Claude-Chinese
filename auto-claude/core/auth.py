@@ -14,10 +14,10 @@ for multiple sources including:
 - macOS Keychain (official OAuth, 官方 OAuth)
 
 Credential Priority Order (认证优先级，从高到低):
-1. Environment variables (CLAUDE_CODE_OAUTH_TOKEN, ANTHROPIC_AUTH_TOKEN)
+1. Environment variables (CLAUDE_CODE_OAUTH_TOKEN, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_API_KEY)
    环境变量 - 最高优先级
 2. ~/.claude/settings.json (third-party auth like yunyi)
-   第三方渠道配置（如云翼）
+   第三方渠道配置（如云翼），支持 ANTHROPIC_AUTH_TOKEN 或 ANTHROPIC_API_KEY
 3. macOS Keychain (official Claude Code OAuth)
    macOS 钥匙串（官方 OAuth 自动存储）
 
@@ -30,18 +30,19 @@ import os
 import platform
 import subprocess
 from pathlib import Path
-from typing import Optional, Tuple
 
 # Priority order for auth token resolution
 AUTH_TOKEN_ENV_VARS = [
     "CLAUDE_CODE_OAUTH_TOKEN",  # OAuth token from Claude Code CLI
     "ANTHROPIC_AUTH_TOKEN",  # CCR/proxy token (for enterprise/third-party setups)
+    "ANTHROPIC_API_KEY",  # 云翼等第三方渠道使用的 API Key
 ]
 
 # Environment variables to pass through to SDK subprocess
 SDK_ENV_VARS = [
     "ANTHROPIC_BASE_URL",
     "ANTHROPIC_AUTH_TOKEN",
+    "ANTHROPIC_API_KEY",  # 云翼等第三方渠道
     "CLAUDE_CODE_OAUTH_TOKEN",
     "NO_PROXY",
     "DISABLE_TELEMETRY",
@@ -83,7 +84,7 @@ def get_token_from_keychain() -> str | None:
         return None
 
 
-def get_token_from_settings() -> Tuple[Optional[str], Optional[str]]:
+def get_token_from_settings() -> tuple[str | None, str | None]:
     """
     Get auth token and base URL from ~/.claude/settings.json.
 
@@ -97,16 +98,17 @@ def get_token_from_settings() -> Tuple[Optional[str], Optional[str]]:
         return None, None
 
     try:
-        with open(CLAUDE_SETTINGS_PATH, "r", encoding="utf-8") as f:
+        with open(CLAUDE_SETTINGS_PATH, encoding="utf-8") as f:
             settings = json.load(f)
 
         env_settings = settings.get("env", {})
-        token = env_settings.get("ANTHROPIC_AUTH_TOKEN")
+        # 优先 ANTHROPIC_AUTH_TOKEN，其次 ANTHROPIC_API_KEY（云翼等第三方渠道）
+        token = env_settings.get("ANTHROPIC_AUTH_TOKEN") or env_settings.get("ANTHROPIC_API_KEY")
         base_url = env_settings.get("ANTHROPIC_BASE_URL")
 
         return token, base_url
 
-    except (json.JSONDecodeError, IOError, Exception):
+    except (OSError, json.JSONDecodeError, Exception):
         return None, None
 
 
@@ -262,7 +264,7 @@ def diagnose_auth() -> str:
 
     # Check settings.json
     token, base_url = get_token_from_settings()
-    lines.append(f"\n~/.claude/settings.json:")
+    lines.append("\n~/.claude/settings.json:")
     lines.append(f"  ANTHROPIC_AUTH_TOKEN: {'✓ 已设置' if token else '✗ 未设置'}")
     lines.append(f"  ANTHROPIC_BASE_URL: {base_url or '✗ 未设置'}")
 

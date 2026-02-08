@@ -16,6 +16,7 @@ Usage:
     python auto-claude/run.py --spec 001-initial-app
     python auto-claude/run.py --spec 001
     python auto-claude/run.py --list
+    python auto-claude/run.py --doctor
 
     # Workspace management
     python auto-claude/run.py --spec 001 --merge     # Add completed build to project

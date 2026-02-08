@@ -14,6 +14,7 @@ _PARENT_DIR = Path(__file__).parent.parent
 if str(_PARENT_DIR) not in sys.path:
     sys.path.insert(0, str(_PARENT_DIR))
 
+from core.incident import write_incident_report
 from progress import count_subtasks
 from qa_loop import (
     is_qa_approved,
@@ -125,3 +126,18 @@ def handle_qa_command(
     except KeyboardInterrupt:
         print("\n\nQA validation paused.")
         print(f"Resume with: python auto-claude/run.py --spec {spec_dir.name} --qa")
+    except Exception as e:
+        print(f"\n❌ QA validation failed: {e}")
+        incident_path = write_incident_report(
+            project_dir=project_dir,
+            component="qa",
+            error=e,
+            context={
+                "spec": spec_dir.name,
+                "model": model,
+                "command": "--qa",
+            },
+        )
+        if incident_path:
+            print(f"Incident report: {incident_path}")
+        sys.exit(1)

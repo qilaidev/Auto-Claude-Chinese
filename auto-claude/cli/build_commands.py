@@ -80,6 +80,7 @@ def handle_build_command(
     """
     # Lazy imports to avoid loading heavy modules
     from agent import run_autonomous_agent, sync_plan_to_source
+    from core.incident import write_incident_report
     from debug import (
         debug,
         debug_info,
@@ -308,6 +309,19 @@ def handle_build_command(
         )
     except Exception as e:
         print(f"\nFatal error: {e}")
+        incident_path = write_incident_report(
+            project_dir=project_dir,
+            component="build",
+            error=e,
+            context={
+                "spec": spec_dir.name,
+                "working_dir": str(working_dir),
+                "workspace_mode": str(workspace_mode),
+                "model": model,
+            },
+        )
+        if incident_path:
+            print(f"Incident report: {incident_path}")
         status_manager = StatusManager(project_dir)
         status_manager.update(
             active=True,

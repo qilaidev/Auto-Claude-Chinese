@@ -6,6 +6,7 @@ Command-line interface for the Auto Claude autonomous coding framework.
 
 This package provides a modular CLI structure:
 - main.py: Argument parsing and command routing
+- doctor_commands.py: Production preflight readiness checks
 - spec_commands.py: Spec listing and management
 - build_commands.py: Build execution and follow-up tasks
 - workspace_commands.py: Workspace management (merge, review, discard)

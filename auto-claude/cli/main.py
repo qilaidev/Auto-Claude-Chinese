@@ -15,14 +15,14 @@ _PARENT_DIR = Path(__file__).parent.parent
 if str(_PARENT_DIR) not in sys.path:
     sys.path.insert(0, str(_PARENT_DIR))
 
+from core.logging_setup import configure_logging
 from ui import (
     Icons,
     icon,
 )
 
-from core.logging_setup import configure_logging
-
 from .build_commands import handle_build_command
+from .doctor_commands import handle_doctor_command
 from .followup_commands import handle_followup_command
 from .qa_commands import (
     handle_qa_command,
@@ -75,11 +75,14 @@ Examples:
 
 Prerequisites:
   1. Create a spec first: claude /spec
-  2. Run 'claude setup-token' and set CLAUDE_CODE_OAUTH_TOKEN
+  2. Authenticate via one of:
+     - OAuth: run 'claude setup-token'
+     - Third-party: set ANTHROPIC_AUTH_TOKEN or ANTHROPIC_API_KEY in ~/.claude/settings.json
 
 Environment Variables:
-  CLAUDE_CODE_OAUTH_TOKEN  Your Claude Code OAuth token (required)
-                           Get it by running: claude setup-token
+  CLAUDE_CODE_OAUTH_TOKEN  OAuth token (run: claude setup-token)
+  ANTHROPIC_AUTH_TOKEN     Third-party auth token (e.g. yunyi)
+  ANTHROPIC_API_KEY        Third-party API key
   AUTO_BUILD_MODEL         Override default model (optional)
         """,
     )
@@ -88,6 +91,18 @@ Environment Variables:
         "--list",
         action="store_true",
         help="List all available specs and their status",
+    )
+
+    parser.add_argument(
+        "--doctor",
+        action="store_true",
+        help="Run production preflight doctor checks",
+    )
+
+    parser.add_argument(
+        "--doctor-strict",
+        action="store_true",
+        help="With --doctor: treat warnings as failures",
     )
 
     parser.add_argument(
@@ -284,6 +299,24 @@ def main() -> None:
     # Handle --cleanup-worktrees command
     if args.cleanup_worktrees:
         handle_cleanup_worktrees_command(project_dir)
+        return
+
+    # Handle doctor command (spec optional)
+    if args.doctor:
+        spec_dir = None
+        if args.spec:
+            spec_dir = find_spec(project_dir, args.spec, args.dev)
+            if not spec_dir:
+                print_banner()
+                print(f"\nWarning: Spec '{args.spec}' not found for doctor check.")
+        success = handle_doctor_command(
+            project_dir=project_dir,
+            spec_dir=spec_dir,
+            spec_identifier=args.spec,
+            strict=args.doctor_strict,
+        )
+        if not success:
+            sys.exit(1)
         return
 
     # Require --spec if not listing

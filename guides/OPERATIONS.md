@@ -24,20 +24,49 @@ for long-term use without changing its architecture.
   - `AUTO_CLAUDE_LOG_LEVEL=INFO`
   - `AUTO_CLAUDE_LOG_MAX_BYTES=5242880`
   - `AUTO_CLAUDE_LOG_BACKUPS=3`
+- Merge and backup safety rails:
+  - `AUTO_CLAUDE_ALLOW_DIRTY_MERGE=false` (default) blocks `--merge` when git working tree is dirty.
+  - `AUTO_CLAUDE_DISABLE_AUTO_BACKUP=false` (default) creates pre-delete backup archives before `--discard` / `--cleanup-worktrees`.
+  - `AUTO_CLAUDE_MAX_BACKUPS_PER_SPEC=20` controls backup retention per spec.
 - Optional GitHub proxy for updater/source downloads (when direct GitHub access is blocked):
   - `AUTO_CLAUDE_GITHUB_PROXY=https://mirror.ghproxy.com`
   - Set `AUTO_CLAUDE_DISABLE_PROXY_FALLBACK=true` to disable built-in fallback.
+- Optional container image pinning (recommended for long-term stability):
+  - `FALKORDB_IMAGE=falkordb/falkordb:<version>`
+  - `GRAPHITI_MCP_IMAGE=falkordb/graphiti-knowledge-graph-mcp:<version>`
+  - For Desktop UI one-click start: `AUTO_CLAUDE_FALKORDB_IMAGE=falkordb/falkordb:<version>`
 - Debug-only logging (use sparingly in production):
   - `DEBUG=true`
   - `DEBUG_LEVEL=1|2|3`
   - `DEBUG_LOG_FILE=auto-claude/debug.log`
+- Dependency pinning (optional but recommended for production):
+  - Create `auto-claude/requirements.lock` and keep it in sync with releases.
+  - Desktop UI will prefer `requirements.lock` over `requirements.txt` if present.
 
 ## Observability (What to Check)
 
 - **Build status file**: `.auto-claude-status` in the project root.
 - **Per-spec logs**: `.auto-claude/specs/<spec>/task_logs.json`.
-- **Desktop UI main logs**: OS log directory (Auto-Claude/main.log).
+- **Incident reports (fatal errors)**: `.auto-claude/incidents/*.json`.
+- **Pre-delete backups**: `.auto-claude/backups/<spec>/*.tar.gz`.
+- **Desktop UI main logs**: OS log directory (`main.log`).
+- **Desktop UI task logs** (per spec): `.auto-claude/specs/<spec>/logs/latest.log`.
 - **Optional runtime log** (if enabled): `AUTO_CLAUDE_LOG_FILE` or `AUTO_CLAUDE_LOG_DIR`.
+
+## Data Locations (Desktop UI)
+
+Desktop UI data is stored under `app.getPath('userData')`:
+
+- **macOS**: `~/Library/Application Support/Auto Claude/`
+- **Windows**: `%APPDATA%\\Auto Claude\\`
+- **Linux**: `~/.config/Auto Claude/`
+
+Key subfolders:
+
+- `store/projects.json` — project list and settings
+- `settings.json` — app settings
+- `auto-claude-source/` — downloaded backend override (used by auto-updater)
+- `sessions/` and `terminal-sessions.json` — terminal recovery data
 
 ## Health Checks
 
@@ -47,6 +76,19 @@ Basic checks before running a build:
 git rev-parse --is-inside-work-tree
 claude --version
 python3 --version
+```
+
+Recommended full preflight (built-in):
+
+```bash
+# Project-level readiness
+python auto-claude/run.py --doctor
+
+# Spec-level readiness (includes spec lookup + write checks)
+python auto-claude/run.py --doctor --spec <spec-id>
+
+# CI strict mode (warnings fail)
+python auto-claude/run.py --doctor --doctor-strict
 ```
 
 Graphiti memory (optional):
@@ -66,6 +108,42 @@ docker ps --filter name=auto-claude-graphiti-mcp
 ```bash
 tar -czf auto-claude-backup.tgz .auto-claude .worktrees
 ```
+
+Auto backup behavior for destructive commands:
+
+- `python auto-claude/run.py --spec <spec-id> --discard` now creates a backup archive by default.
+- `python auto-claude/run.py --cleanup-worktrees` now creates per-spec backups by default.
+- Disable only when necessary: `AUTO_CLAUDE_DISABLE_AUTO_BACKUP=true`.
+
+Restore from an auto-backup archive:
+
+```bash
+mkdir -p restore-spec
+tar -xzf .auto-claude/backups/<spec>/<archive>.tar.gz -C restore-spec
+```
+
+The extracted folder contains:
+
+- `spec/` (spec state, logs, QA artifacts)
+- `worktree/` (worktree snapshot, if present)
+- `backup_metadata.json` (timestamp/reason metadata)
+
+### Backup Desktop UI data (recommended for production use)
+
+Back up the Desktop UI `userData` directory (see paths above).
+
+- **macOS**:
+  ```bash
+  tar -czf auto-claude-ui-userdata.tgz ~/Library/Application\ Support/Auto\ Claude
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  Compress-Archive -Path "$env:APPDATA\\Auto Claude" -DestinationPath auto-claude-ui-userdata.zip
+  ```
+- **Linux**:
+  ```bash
+  tar -czf auto-claude-ui-userdata.tgz ~/.config/Auto\ Claude
+  ```
 
 ### Backup Graphiti (optional)
 
@@ -94,6 +172,11 @@ docker run --rm \
 - **Revert merged changes**: use normal git revert/reset on your target branch.
 - **Spec state reset** (last resort): remove the spec directory under
   `.auto-claude/specs/<spec-id>/` and recreate the spec.
+- **Desktop UI backend rollback** (packaged app):
+  - Delete `auto-claude-source/` under the Desktop UI `userData` directory to
+    revert to the bundled backend on next launch.
+  - If a backup exists (`.auto-claude-source.backup`), you can restore it by
+    renaming it to `auto-claude-source`.
 
 ## Security Baseline
 

@@ -5,11 +5,9 @@ Claude SDK Client Configuration
 Functions for creating and configuring the Claude Agent SDK client.
 """
 
-import json
 import os
 from pathlib import Path
 
-from core.file_io import atomic_write_json
 from auto_claude_tools import (
     create_auto_claude_mcp_server,
     is_tools_available,
@@ -20,6 +18,7 @@ from auto_claude_tools import (
 from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
 from claude_agent_sdk.types import HookMatcher
 from core.auth import get_oauth_token, get_sdk_env_vars, require_auth_token
+from core.file_io import atomic_write_json
 from linear_updater import is_linear_enabled
 from prompts_pkg.project_context import detect_project_capabilities, load_project_index
 from security import bash_security_hook
@@ -162,7 +161,7 @@ def create_client(
        (see security.py for ALLOWED_COMMANDS)
     4. Tool filtering - Each agent type only sees relevant tools (prevents misuse)
     """
-    # Ensure we have *some* auth configured (OAuth token or ANTHROPIC_AUTH_TOKEN)
+    # Ensure we have *some* auth configured (OAuth, ANTHROPIC_AUTH_TOKEN, or ANTHROPIC_API_KEY)
     require_auth_token()
 
     # Only set CLAUDE_CODE_OAUTH_TOKEN if we actually have an OAuth token

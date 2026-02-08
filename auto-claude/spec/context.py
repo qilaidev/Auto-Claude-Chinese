@@ -11,6 +11,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from core.file_io import atomic_write_json
+
 
 def run_context_discovery(
     project_dir: Path,
@@ -73,8 +75,7 @@ def run_context_discovery(
                     else:
                         ctx["task_description"] = task_description or "unknown task"
 
-                    with open(context_file, "w") as f:
-                        json.dump(ctx, f, indent=2)
+                    atomic_write_json(context_file, ctx, indent=2)
             except (OSError, json.JSONDecodeError):
                 context_file.unlink(missing_ok=True)
                 return False, "Invalid context.json created"
@@ -94,7 +95,7 @@ def create_minimal_context(
     task_description: str,
     services: list[str],
 ) -> Path:
-    """Create minimal context.json when script fails."""
+    """Create minimal context.json when script fails (atomic write)."""
     context_file = spec_dir / "context.json"
 
     minimal_context = {
@@ -105,8 +106,7 @@ def create_minimal_context(
         "created_at": datetime.now().isoformat(),
     }
 
-    with open(context_file, "w") as f:
-        json.dump(minimal_context, f, indent=2)
+    atomic_write_json(context_file, minimal_context, indent=2)
 
     return context_file
 

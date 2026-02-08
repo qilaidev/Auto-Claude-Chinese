@@ -13,6 +13,8 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
+from core.file_io import atomic_write_json
+
 
 class Complexity(Enum):
     """Task complexity tiers that determine which phases to run."""
@@ -438,29 +440,28 @@ async def run_ai_complexity_assessment(
 def save_assessment(
     spec_dir: Path, assessment: ComplexityAssessment, dev_mode: bool = False
 ) -> Path:
-    """Save complexity assessment to file."""
+    """Save complexity assessment to file (atomic write)."""
     assessment_file = spec_dir / "complexity_assessment.json"
     phases = assessment.phases_to_run()
 
-    with open(assessment_file, "w") as f:
-        json.dump(
-            {
-                "complexity": assessment.complexity.value,
-                "confidence": assessment.confidence,
-                "reasoning": assessment.reasoning,
-                "signals": assessment.signals,
-                "estimated_files": assessment.estimated_files,
-                "estimated_services": assessment.estimated_services,
-                "external_integrations": assessment.external_integrations,
-                "infrastructure_changes": assessment.infrastructure_changes,
-                "phases_to_run": phases,
-                "needs_research": assessment.needs_research,
-                "needs_self_critique": assessment.needs_self_critique,
-                "dev_mode": dev_mode,
-                "created_at": datetime.now().isoformat(),
-            },
-            f,
-            indent=2,
-        )
+    atomic_write_json(
+        assessment_file,
+        {
+            "complexity": assessment.complexity.value,
+            "confidence": assessment.confidence,
+            "reasoning": assessment.reasoning,
+            "signals": assessment.signals,
+            "estimated_files": assessment.estimated_files,
+            "estimated_services": assessment.estimated_services,
+            "external_integrations": assessment.external_integrations,
+            "infrastructure_changes": assessment.infrastructure_changes,
+            "phases_to_run": phases,
+            "needs_research": assessment.needs_research,
+            "needs_self_critique": assessment.needs_self_critique,
+            "dev_mode": dev_mode,
+            "created_at": datetime.now().isoformat(),
+        },
+        indent=2,
+    )
 
     return assessment_file

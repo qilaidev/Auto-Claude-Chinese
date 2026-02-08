@@ -13,6 +13,8 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
+from core.file_io import atomic_write_json
+
 
 def open_editor_for_input(field_name: str) -> str:
     """Open the user's editor for long-form text input."""
@@ -165,10 +167,9 @@ def create_requirements_from_task(task_description: str) -> dict:
 
 
 def save_requirements(spec_dir: Path, requirements: dict) -> Path:
-    """Save requirements to file."""
+    """Save requirements to file using atomic write to avoid partial reads."""
     requirements_file = spec_dir / "requirements.json"
-    with open(requirements_file, "w") as f:
-        json.dump(requirements, f, indent=2)
+    atomic_write_json(requirements_file, requirements, indent=2)
     return requirements_file
 
 
