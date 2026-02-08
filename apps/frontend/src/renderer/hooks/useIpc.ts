@@ -144,8 +144,15 @@ export function useIpcListeners(): void {
 
     const cleanupLog = window.electronAPI.onTaskLog(
       (taskId: string, log: string) => {
+        const lines = log.split(/\r?\n/);
+        const normalized: string[] = [];
+        for (const line of lines) {
+          if (line.startsWith('__TASK_LOG_')) continue;
+          normalized.push(`${line}\n`);
+        }
+        if (normalized.length === 0) return;
         // Logs are now batched to reduce state updates (was causing 100+ updates/sec)
-        queueUpdate(taskId, { logs: [log] });
+        queueUpdate(taskId, { logs: normalized });
       }
     );
 

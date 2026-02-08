@@ -177,9 +177,10 @@ def require_auth_token() -> str:
     token = get_auth_token()
     if not token:
         error_msg = (
-            "No OAuth token found.\n\n"
-            "Auto Claude requires Claude Code OAuth authentication.\n"
-            "Direct API keys (ANTHROPIC_API_KEY) are not supported.\n\n"
+            "未找到认证凭证。\n\n"
+            "支持的认证方式：\n"
+            "  - OAuth: 运行 'claude setup-token'\n"
+            "  - 第三方渠道: 在 ~/.claude/settings.json 中设置 ANTHROPIC_AUTH_TOKEN 或 ANTHROPIC_API_KEY\n\n"
         )
         # Provide platform-specific guidance
         system = platform.system()

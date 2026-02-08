@@ -117,13 +117,13 @@ def validate_environment(spec_dir: Path) -> bool:
     """
     valid = True
 
-    # Check for OAuth token (API keys are not supported)
+    # Check for auth token (OAuth, ANTHROPIC_AUTH_TOKEN, or ANTHROPIC_API_KEY)
     if not get_auth_token():
-        print("Error: No OAuth token found")
-        print("\nAuto Claude requires Claude Code OAuth authentication.")
-        print("Direct API keys (ANTHROPIC_API_KEY) are not supported.")
-        print("\nTo authenticate, run:")
-        print("  claude setup-token")
+        print("Error: No auth token found")
+        print("\nAuto Claude requires authentication.")
+        print("Supported methods:")
+        print("  - OAuth: run 'claude setup-token'")
+        print("  - Third-party: set ANTHROPIC_AUTH_TOKEN or ANTHROPIC_API_KEY in ~/.claude/settings.json")
         valid = False
     else:
         # Show which auth source is being used

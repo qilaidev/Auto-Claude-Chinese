@@ -74,11 +74,14 @@ Examples:
 
 Prerequisites:
   1. Create a spec first: claude /spec
-  2. Run 'claude setup-token' and set CLAUDE_CODE_OAUTH_TOKEN
+  2. Authenticate via one of:
+     - OAuth: run 'claude setup-token'
+     - Third-party: set ANTHROPIC_AUTH_TOKEN or ANTHROPIC_API_KEY in ~/.claude/settings.json
 
 Environment Variables:
-  CLAUDE_CODE_OAUTH_TOKEN  Your Claude Code OAuth token (required)
-                           Get it by running: claude setup-token
+  CLAUDE_CODE_OAUTH_TOKEN  OAuth token (run: claude setup-token)
+  ANTHROPIC_AUTH_TOKEN     Third-party auth token (e.g. yunyi)
+  ANTHROPIC_API_KEY        Third-party API key
   AUTO_BUILD_MODEL         Override default model (optional)
         """,
     )
