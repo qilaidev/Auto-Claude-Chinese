@@ -5,10 +5,11 @@ import type { IPCResult, ProjectEnvConfig, ClaudeAuthResult, AppSettings } from 
 import path from 'path';
 import os from 'os';
 import { app } from 'electron';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { spawn } from 'child_process';
 import { projectStore } from '../project-store';
 import { parseEnvFile } from './utils';
+import { writeFileAtomic } from '../utils/atomic-write';
 
 /**
  * Detect the full path to the claude CLI
@@ -441,7 +442,7 @@ ${existingVars['GRAPHITI_DATABASE'] ? `GRAPHITI_DATABASE=${existingVars['GRAPHIT
         const newContent = generateEnvContent(config, existingContent);
 
         // Write to file
-        writeFileSync(envPath, newContent);
+        writeFileAtomic(envPath, newContent);
 
         return { success: true };
       } catch (error) {

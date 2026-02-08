@@ -7,6 +7,7 @@ import { projectStore } from '../../project-store';
 import { titleGenerator } from '../../title-generator';
 import { AgentManager } from '../../agent';
 import { findTaskAndProject } from './shared';
+import { writeFileAtomic, writeJsonAtomic } from '../../utils/atomic-write';
 
 /**
  * Register task CRUD (Create, Read, Update, Delete) handlers
@@ -141,7 +142,7 @@ export function registerTaskCRUDHandlers(agentManager: AgentManager): void {
         taskMetadata.attachedImages = savedImages;
       }
 
-      // Create initial implementation_plan.json (task is created but not started)
+      // Create initial implementation_plan.json (atomic to avoid partial reads)
       const now = new Date().toISOString();
       const implementationPlan = {
         feature: finalTitle,
@@ -153,12 +154,12 @@ export function registerTaskCRUDHandlers(agentManager: AgentManager): void {
       };
 
       const planPath = path.join(specDir, AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN);
-      writeFileSync(planPath, JSON.stringify(implementationPlan, null, 2));
+      writeJsonAtomic(planPath, implementationPlan);
 
       // Save task metadata if provided
       if (taskMetadata) {
         const metadataPath = path.join(specDir, 'task_metadata.json');
-        writeFileSync(metadataPath, JSON.stringify(taskMetadata, null, 2));
+        writeJsonAtomic(metadataPath, taskMetadata);
       }
 
       // Create requirements.json with attached images
@@ -177,7 +178,7 @@ export function registerTaskCRUDHandlers(agentManager: AgentManager): void {
       }
 
       const requirementsPath = path.join(specDir, AUTO_BUILD_PATHS.REQUIREMENTS);
-      writeFileSync(requirementsPath, JSON.stringify(requirements, null, 2));
+      writeJsonAtomic(requirementsPath, requirements);
 
       // Create the task object
       const task: Task = {
@@ -304,7 +305,7 @@ export function registerTaskCRUDHandlers(agentManager: AgentManager): void {
             }
             plan.updated_at = new Date().toISOString();
 
-            writeFileSync(planPath, JSON.stringify(plan, null, 2));
+            writeJsonAtomic(planPath, plan);
           } catch {
             // Plan file might not be valid JSON, continue anyway
           }
@@ -333,7 +334,7 @@ export function registerTaskCRUDHandlers(agentManager: AgentManager): void {
               );
             }
 
-            writeFileSync(specPath, specContent);
+            writeFileAtomic(specPath, specContent);
           } catch {
             // Spec file update failed, continue anyway
           }
@@ -381,7 +382,7 @@ export function registerTaskCRUDHandlers(agentManager: AgentManager): void {
           // Update task_metadata.json
           const metadataPath = path.join(specDir, 'task_metadata.json');
           try {
-            writeFileSync(metadataPath, JSON.stringify(updatedMetadata, null, 2));
+            writeJsonAtomic(metadataPath, updatedMetadata);
           } catch (err) {
             console.error('Failed to update task_metadata.json:', err);
           }
@@ -400,7 +401,7 @@ export function registerTaskCRUDHandlers(agentManager: AgentManager): void {
                 requirements.workflow_type = updates.metadata.category;
               }
 
-              writeFileSync(requirementsPath, JSON.stringify(requirements, null, 2));
+              writeJsonAtomic(requirementsPath, requirements);
             } catch (err) {
               console.error('Failed to update requirements.json:', err);
             }

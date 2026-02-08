@@ -3,7 +3,7 @@
  */
 
 import path from 'path';
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync } from 'fs';
 import type { IpcMainInvokeEvent } from 'electron';
 import { AUTO_BUILD_PATHS, getSpecsDir } from '../../../shared/constants';
 import type {
@@ -19,6 +19,7 @@ import type {
 import { projectStore } from '../../project-store';
 import { readIdeationFile, writeIdeationFile, updateIdeationTimestamp } from './file-utils';
 import type { RawIdea } from './types';
+import { writeFileAtomic, writeJsonAtomic } from '../../utils/atomic-write';
 
 /**
  * Find the next available spec number
@@ -179,9 +180,9 @@ function createSpecFiles(
     final_acceptance: [],
     spec_file: 'spec.md'
   };
-  writeFileSync(
+  writeJsonAtomic(
     path.join(specDir, AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN),
-    JSON.stringify(initialPlan, null, 2)
+    initialPlan
   );
 
   // Create initial spec.md
@@ -198,7 +199,7 @@ ${idea.rationale}
 ---
 *This spec was created from ideation and is pending detailed specification.*
 `;
-  writeFileSync(path.join(specDir, AUTO_BUILD_PATHS.SPEC_FILE), specContent);
+  writeFileAtomic(path.join(specDir, AUTO_BUILD_PATHS.SPEC_FILE), specContent);
 }
 
 /**
@@ -256,7 +257,7 @@ export async function convertIdeaToTask(
 
     // Save metadata
     const metadataPath = path.join(specDir, 'task_metadata.json');
-    writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+    writeJsonAtomic(metadataPath, metadata);
 
     // Update idea status to archived (converted ideas are archived)
     idea.status = 'archived';

@@ -1,12 +1,16 @@
 import { app } from 'electron';
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, Dirent } from 'fs';
+import { readFileSync, existsSync, mkdirSync, readdirSync, Dirent, copyFileSync } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import type { Project, ProjectSettings, Task, TaskStatus, TaskMetadata, ImplementationPlan, ReviewReason, PlanSubtask } from '../shared/types';
 import { DEFAULT_PROJECT_SETTINGS, AUTO_BUILD_PATHS, getSpecsDir } from '../shared/constants';
 import { getAutoBuildPath, isInitialized } from './project-initializer';
+import { writeJsonAtomic } from './utils/atomic-write';
+
+const STORE_VERSION = 1;
 
 interface StoreData {
+  version: number;
   projects: Project[];
   settings: Record<string, unknown>;
 }
@@ -39,26 +43,59 @@ export class ProjectStore {
     if (existsSync(this.storePath)) {
       try {
         const content = readFileSync(this.storePath, 'utf-8');
-        const data = JSON.parse(content);
-        // Convert date strings back to Date objects
-        data.projects = data.projects.map((p: Project) => ({
-          ...p,
-          createdAt: new Date(p.createdAt),
-          updatedAt: new Date(p.updatedAt)
-        }));
+        const raw = JSON.parse(content) as Partial<StoreData>;
+        const { data, migrated } = this.migrateStoreData(raw);
+        if (migrated) {
+          this.backupStoreFile();
+          writeJsonAtomic(this.storePath, data);
+        }
         return data;
       } catch {
-        return { projects: [], settings: {} };
+        return { version: STORE_VERSION, projects: [], settings: {} };
       }
     }
-    return { projects: [], settings: {} };
+    return { version: STORE_VERSION, projects: [], settings: {} };
   }
 
   /**
    * Save store to disk
    */
   private save(): void {
-    writeFileSync(this.storePath, JSON.stringify(this.data, null, 2));
+    writeJsonAtomic(this.storePath, this.data);
+  }
+
+  private migrateStoreData(raw: Partial<StoreData>): { data: StoreData; migrated: boolean } {
+    const version = typeof raw.version === 'number' ? raw.version : 0;
+    const isFutureVersion = version > STORE_VERSION;
+    const migrated = !isFutureVersion && version !== STORE_VERSION;
+
+    const projects = Array.isArray(raw.projects) ? raw.projects : [];
+    const settings = (raw.settings && typeof raw.settings === 'object') ? raw.settings : {};
+
+    const normalizedProjects = projects.map((p: Project) => ({
+      ...p,
+      createdAt: new Date(p.createdAt),
+      updatedAt: new Date(p.updatedAt)
+    }));
+
+    return {
+      data: {
+        version: isFutureVersion ? version : STORE_VERSION,
+        projects: normalizedProjects,
+        settings: settings as Record<string, unknown>
+      },
+      migrated
+    };
+  }
+
+  private backupStoreFile(): void {
+    if (!existsSync(this.storePath)) return;
+    const backupPath = `${this.storePath}.bak-${Date.now()}`;
+    try {
+      copyFileSync(this.storePath, backupPath);
+    } catch {
+      // Ignore backup failures
+    }
   }
 
   /**
@@ -536,7 +573,7 @@ export class ProjectStore {
           metadata.archivedInVersion = version;
         }
 
-        writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+        writeJsonAtomic(metadataPath, metadata);
       } catch {
         // Continue with other tasks even if one fails
       }
@@ -566,7 +603,7 @@ export class ProjectStore {
           const metadata: TaskMetadata = JSON.parse(readFileSync(metadataPath, 'utf-8'));
           delete metadata.archivedAt;
           delete metadata.archivedInVersion;
-          writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+          writeJsonAtomic(metadataPath, metadata);
         }
       } catch {
         // Continue with other tasks even if one fails

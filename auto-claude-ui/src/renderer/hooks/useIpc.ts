@@ -31,7 +31,14 @@ export function useIpcListeners(): void {
 
     const cleanupLog = window.electronAPI.onTaskLog(
       (taskId: string, log: string) => {
-        appendLog(taskId, log);
+        const lines = log.split(/\r?\n/);
+        let normalized = '';
+        for (const line of lines) {
+          if (line.startsWith('__TASK_LOG_')) continue;
+          normalized += `${line}\n`;
+        }
+        if (normalized.length === 0) return;
+        appendLog(taskId, normalized);
       }
     );
 

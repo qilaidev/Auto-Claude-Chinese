@@ -1,5 +1,5 @@
 import { ipcMain, dialog, app, shell } from 'electron';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, mkdirSync } from 'fs';
 import { execSync } from 'child_process';
 import path from 'path';
 import { is } from '@electron-toolkit/utils';
@@ -12,6 +12,7 @@ import { AgentManager } from '../agent';
 import type { BrowserWindow } from 'electron';
 import { getEffectiveVersion } from '../auto-claude-updater';
 import { isSafeExternalUrl } from './utils';
+import { writeJsonAtomic } from '../utils/atomic-write';
 
 const settingsPath = path.join(app.getPath('userData'), 'settings.json');
 
@@ -130,7 +131,7 @@ export function registerSettingsHandlers(
       // Persist migration changes
       if (needsSave) {
         try {
-          writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+          writeJsonAtomic(settingsPath, settings);
         } catch (error) {
           console.error('[SETTINGS_GET] Failed to persist migration:', error);
           // Continue anyway - settings will be migrated in-memory for this session
@@ -152,7 +153,7 @@ export function registerSettingsHandlers(
         }
 
         const newSettings = { ...currentSettings, ...settings };
-        writeFileSync(settingsPath, JSON.stringify(newSettings, null, 2));
+        writeJsonAtomic(settingsPath, newSettings);
 
         // Apply Python path if changed
         if (settings.pythonPath || settings.autoBuildPath) {

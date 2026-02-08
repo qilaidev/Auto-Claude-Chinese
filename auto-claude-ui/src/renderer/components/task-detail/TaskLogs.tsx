@@ -177,7 +177,7 @@ interface PhaseLogSectionProps {
 function PhaseLogSection({ phase, phaseLog, isExpanded, onToggle, isTaskStuck, phaseConfig }: PhaseLogSectionProps) {
   const Icon = PHASE_ICONS[phase];
   const status = phaseLog?.status || 'pending';
-  const hasEntries = (phaseLog?.entries.length || 0) > 0;
+  const hasEntries = (phaseLog?.entries?.length || 0) > 0;
 
   const getStatusBadge = () => {
     switch (status) {
@@ -245,7 +245,7 @@ function PhaseLogSection({ phase, phaseLog, isExpanded, onToggle, isTaskStuck, p
             <span className="font-medium text-sm">{PHASE_LABELS[phase]}</span>
             {hasEntries && (
               <span className="text-xs text-muted-foreground">
-                （{phaseLog?.entries.length} 条）
+                （{phaseLog?.entries?.length} 条）
               </span>
             )}
           </div>
@@ -273,7 +273,7 @@ function PhaseLogSection({ phase, phaseLog, isExpanded, onToggle, isTaskStuck, p
           {!hasEntries ? (
             <p className="text-xs text-muted-foreground italic">暂无日志</p>
           ) : (
-            phaseLog?.entries.map((entry, idx) => (
+            phaseLog?.entries?.map((entry, idx) => (
               <LogEntry key={`${entry.timestamp}-${idx}`} entry={entry} />
             ))
           )}

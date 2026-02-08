@@ -1,5 +1,5 @@
 import { spawn, ChildProcess } from 'child_process';
-import { existsSync, writeFileSync, unlinkSync } from 'fs';
+import { existsSync, unlinkSync } from 'fs';
 import path from 'path';
 import os from 'os';
 import { EventEmitter } from 'events';
@@ -13,6 +13,7 @@ import type {
 import { MODEL_ID_MAP } from '../../shared/constants';
 import { InsightsConfig } from './config';
 import { detectRateLimit, createSDKRateLimitInfo } from '../rate-limit-detector';
+import { writeJsonAtomic } from '../utils/atomic-write';
 
 const DEBUG = process.env.DEBUG === 'true' || process.env.NODE_ENV === 'development';
 
@@ -22,7 +23,7 @@ function redactSensitiveOutput(text: string): string {
     .replace(/\bghp_[A-Za-z0-9]{20,}\b/g, 'ghp_***')
     .replace(/\bsk-[A-Za-z0-9]{20,}\b/g, 'sk-***')
     .replace(/\blin_api_[A-Za-z0-9]{10,}\b/g, 'lin_api_***')
-    .replace(/\b(ANTHROPIC_AUTH_TOKEN|CLAUDE_CODE_OAUTH_TOKEN)=[^\s\n\r]+/g, '$1=***');
+    .replace(/\b(ANTHROPIC_AUTH_TOKEN|ANTHROPIC_API_KEY|CLAUDE_CODE_OAUTH_TOKEN)=[^\s\n\r]+/g, '$1=***');
 }
 
 function debug(message: string, data?: unknown): void {
@@ -121,11 +122,11 @@ export class InsightsExecutor extends EventEmitter {
 
     let historyFileCreated = false;
     try {
-      writeFileSync(historyFile, JSON.stringify(conversationHistory), 'utf-8');
+      writeJsonAtomic(historyFile, conversationHistory);
       historyFileCreated = true;
     } catch (err) {
       console.error('[Insights] Failed to write history file');
-      debug('[Insights] writeFileSync error:', err);
+      debug('[Insights] write history file error:', err);
       throw new Error('Failed to write conversation history to temp file');
     }
 

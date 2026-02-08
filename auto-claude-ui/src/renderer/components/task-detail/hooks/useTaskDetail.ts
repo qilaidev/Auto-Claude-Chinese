@@ -90,7 +90,7 @@ export function useTaskDetail({ task }: UseTaskDetailOptions) {
     if (activeTab === 'logs' && logsEndRef.current && !isUserScrolledUp) {
       logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [task.logs, activeTab, isUserScrolledUp]);
+  }, [task.logs, phaseLogs?.updated_at, activeTab, isUserScrolledUp]);
 
   // Reset scroll state when switching to logs tab
   useEffect(() => {

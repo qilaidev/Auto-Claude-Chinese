@@ -228,16 +228,18 @@ export class AgentQueueManager {
       PYTHONUTF8: '1'
     };
 
-    // Debug: Show auth token source (supports both OAuth and third-party auth)
+    // Debug: Show auth token source (supports OAuth, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_API_KEY)
     const anthropicToken = (finalEnv as Record<string, string | undefined>)['ANTHROPIC_AUTH_TOKEN'];
+    const anthropicApiKey = (finalEnv as Record<string, string | undefined>)['ANTHROPIC_API_KEY'];
     const oauthToken = (finalEnv as Record<string, string | undefined>)['CLAUDE_CODE_OAUTH_TOKEN'];
     const baseUrl = (finalEnv as Record<string, string | undefined>)['ANTHROPIC_BASE_URL'];
     const authSource = anthropicToken
       ? 'third-party (ANTHROPIC_AUTH_TOKEN)'
-      : (oauthToken ? 'OAuth (CLAUDE_CODE_OAUTH_TOKEN)' : 'not found');
+      : (anthropicApiKey ? 'third-party (ANTHROPIC_API_KEY)' : (oauthToken ? 'OAuth' : 'not found'));
     debugLog('[Agent Queue] Auth status:', {
       source: authSource,
       hasAnthropicToken: !!anthropicToken,
+      hasAnthropicApiKey: !!anthropicApiKey,
       hasOAuthToken: !!oauthToken,
       baseUrl: baseUrl || 'default',
       tokenLength: anthropicToken?.length || oauthToken?.length || 0
@@ -477,16 +479,18 @@ export class AgentQueueManager {
       PYTHONUTF8: '1'
     };
 
-    // Debug: Show auth token source (supports both OAuth and third-party auth)
+    // Debug: Show auth token source (supports OAuth, ANTHROPIC_AUTH_TOKEN, ANTHROPIC_API_KEY)
     const anthropicToken = (finalEnv as Record<string, string | undefined>)['ANTHROPIC_AUTH_TOKEN'];
+    const anthropicApiKey = (finalEnv as Record<string, string | undefined>)['ANTHROPIC_API_KEY'];
     const oauthToken = (finalEnv as Record<string, string | undefined>)['CLAUDE_CODE_OAUTH_TOKEN'];
     const baseUrl = (finalEnv as Record<string, string | undefined>)['ANTHROPIC_BASE_URL'];
     const authSource = anthropicToken
       ? 'third-party (ANTHROPIC_AUTH_TOKEN)'
-      : (oauthToken ? 'OAuth (CLAUDE_CODE_OAUTH_TOKEN)' : 'not found');
+      : (anthropicApiKey ? 'third-party (ANTHROPIC_API_KEY)' : (oauthToken ? 'OAuth' : 'not found'));
     debugLog('[Agent Queue] Auth status:', {
       source: authSource,
       hasAnthropicToken: !!anthropicToken,
+      hasAnthropicApiKey: !!anthropicApiKey,
       hasOAuthToken: !!oauthToken,
       baseUrl: baseUrl || 'default',
       tokenLength: anthropicToken?.length || oauthToken?.length || 0

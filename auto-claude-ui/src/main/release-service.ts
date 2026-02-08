@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import path from 'path';
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from 'fs';
 import { execSync, spawn } from 'child_process';
 import type {
   ReleaseableVersion,
@@ -14,6 +14,7 @@ import type {
   TaskStatus
 } from '../shared/types';
 import { DEFAULT_CHANGELOG_PATH } from '../shared/constants';
+import { writeFileAtomic } from './utils/atomic-write';
 
 /**
  * Service for creating GitHub releases with worktree-aware pre-flight checks.
@@ -548,7 +549,7 @@ export class ReleaseService extends EventEmitter {
 
       // Preserve formatting (detect indent)
       const indent = pkgContent.match(/^(\s+)/m)?.[1] || '  ';
-      writeFileSync(pkgPath, JSON.stringify(pkg, null, indent) + '\n');
+      writeFileAtomic(pkgPath, JSON.stringify(pkg, null, indent) + '\n');
 
       // Stage and commit only package.json
       this.emitProgress(projectId, {

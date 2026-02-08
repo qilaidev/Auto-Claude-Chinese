@@ -2,7 +2,7 @@ import { ipcMain, BrowserWindow } from 'electron';
 import { IPC_CHANNELS, AUTO_BUILD_PATHS } from '../../../shared/constants';
 import type { IPCResult, WorktreeStatus, WorktreeDiff, WorktreeDiffFile, WorktreeMergeResult, WorktreeDiscardResult, WorktreeListResult, WorktreeListItem } from '../../../shared/types';
 import path from 'path';
-import { existsSync, readdirSync, statSync } from 'fs';
+import { existsSync, readdirSync, statSync, readFileSync } from 'fs';
 import { execSync, spawn, spawnSync } from 'child_process';
 import { projectStore } from '../../project-store';
 import { PythonEnvManager } from '../../python-env-manager';
@@ -10,6 +10,7 @@ import { getEffectiveSourcePath } from '../../auto-claude-updater';
 import { getProfileEnv } from '../../rate-limit-detector';
 import { findTaskAndProject } from './shared';
 import { findPythonCommand, parsePythonCommand } from '../../python-detector';
+import { writeJsonAtomic } from '../../utils/atomic-write';
 
 /**
  * Register worktree management handlers
@@ -519,7 +520,6 @@ export function registerWorktreeHandlers(
               const planPath = path.join(specDir, AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN);
               try {
                 if (existsSync(planPath)) {
-                  const { readFileSync, writeFileSync } = require('fs');
                   const planContent = readFileSync(planPath, 'utf-8');
                   const plan = JSON.parse(planContent);
                   plan.status = newStatus;
@@ -529,7 +529,7 @@ export function registerWorktreeHandlers(
                     plan.stagedAt = new Date().toISOString();
                     plan.stagedInMainProject = true;
                   }
-                  writeFileSync(planPath, JSON.stringify(plan, null, 2));
+                  writeJsonAtomic(planPath, plan);
                 }
               } catch (persistError) {
                 console.error('Failed to persist task status:', persistError);

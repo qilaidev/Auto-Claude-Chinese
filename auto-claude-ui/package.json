@@ -144,6 +144,10 @@
         "to": "node_modules/@lydell/node-pty"
       },
       {
+        "from": "node_modules/@lydell/node-pty-darwin-arm64",
+        "to": "node_modules/@lydell/node-pty-darwin-arm64"
+      },
+      {
         "from": "resources/icon.ico",
         "to": "icon.ico"
       },

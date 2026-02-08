@@ -5,12 +5,16 @@ import { resolve } from 'path';
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin({
-      // Bundle these packages into the main process (they won't be in node_modules in packaged app)
+      // 打包时需要内联的依赖（不会出现在打包后的 node_modules 中）
+      // IMPORTANT: 如果主进程 import 了某个包且打包后报 "Cannot find module" 错误，
+      // 需要将该包添加到此 exclude 列表中
+      // 参考: src/main/app-updater.ts (electron-updater), src/main/app-logger.ts (electron-log)
       exclude: [
         'uuid',
         'chokidar',
         'ioredis',
-        'electron-updater',
+        'electron-updater',  // 用于自动更新 (app-updater.ts)
+        'electron-log',      // 用于日志记录 (app-logger.ts)
         '@electron-toolkit/utils'
       ]
     })],
@@ -19,7 +23,8 @@ export default defineConfig({
         input: {
           index: resolve(__dirname, 'src/main/index.ts')
         },
-        // Only node-pty needs to be external (native module rebuilt by electron-builder)
+        // 原生模块必须外部化，由 electron-builder 重新编译
+        // 同时需要在 package.json extraResources 中配置复制规则
         external: ['@lydell/node-pty']
       }
     }

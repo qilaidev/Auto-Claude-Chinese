@@ -37,6 +37,9 @@ function getClaudeSettingsEnv(): Record<string, string> {
     if (envSettings.ANTHROPIC_AUTH_TOKEN) {
       result.ANTHROPIC_AUTH_TOKEN = envSettings.ANTHROPIC_AUTH_TOKEN;
     }
+    if (envSettings.ANTHROPIC_API_KEY) {
+      result.ANTHROPIC_API_KEY = envSettings.ANTHROPIC_API_KEY;
+    }
     if (envSettings.ANTHROPIC_BASE_URL) {
       result.ANTHROPIC_BASE_URL = envSettings.ANTHROPIC_BASE_URL;
     }

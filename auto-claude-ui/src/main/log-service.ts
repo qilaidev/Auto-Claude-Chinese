@@ -26,6 +26,7 @@ export class LogService {
   private activeSessions: Map<string, { sessionId: string; logPath: string; startedAt: Date }> = new Map();
   private logBuffers: Map<string, string[]> = new Map();
   private flushIntervals: Map<string, NodeJS.Timeout> = new Map();
+  private truncatedSessions: Set<string> = new Set();
 
   // Flush logs to disk every 2 seconds to balance performance vs data safety
   private readonly FLUSH_INTERVAL_MS = 2000;
@@ -125,8 +126,34 @@ export class LogService {
       return;
     }
 
+    if (this.truncatedSessions.has(taskId)) {
+      this.logBuffers.set(taskId, []); // Drop buffered logs once truncated
+      return;
+    }
+
     try {
       const content = buffer.join('\n') + '\n';
+      let currentSize = 0;
+      try {
+        currentSize = statSync(session.logPath).size;
+      } catch {
+        currentSize = 0;
+      }
+      const nextSize = currentSize + Buffer.byteLength(content, 'utf-8');
+
+      if (nextSize > this.MAX_LOG_SIZE_BYTES) {
+        const notice = [
+          '',
+          '[LogService] Log truncated: maximum size reached.',
+          'Further logs for this session are omitted to prevent disk growth.',
+          ''
+        ].join('\n');
+        appendFileSync(session.logPath, notice);
+        this.truncatedSessions.add(taskId);
+        this.logBuffers.set(taskId, []);
+        return;
+      }
+
       appendFileSync(session.logPath, content);
       this.logBuffers.set(taskId, []); // Clear buffer
     } catch (error) {
@@ -180,6 +207,7 @@ export class LogService {
     }
     this.activeSessions.delete(taskId);
     this.logBuffers.delete(taskId);
+    this.truncatedSessions.delete(taskId);
 
     console.warn(`[LogService] Ended session for task ${taskId}, exit code: ${exitCode}`);
   }

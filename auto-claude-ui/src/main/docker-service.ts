@@ -13,7 +13,9 @@ const execAsync = promisify(exec);
 
 // FalkorDB container configuration
 const FALKORDB_CONTAINER_NAME = 'auto-claude-falkordb';
-const FALKORDB_IMAGE = 'falkordb/falkordb:latest';
+const FALKORDB_IMAGE = process.env.AUTO_CLAUDE_FALKORDB_IMAGE
+  || process.env.FALKORDB_IMAGE
+  || 'falkordb/falkordb:latest';
 const FALKORDB_DEFAULT_PORT = 6380;
 
 export interface DockerStatus {

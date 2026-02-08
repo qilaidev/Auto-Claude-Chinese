@@ -3,9 +3,10 @@
  */
 
 import path from 'path';
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync } from 'fs';
 import { AUTO_BUILD_PATHS, getSpecsDir } from '../../../shared/constants';
 import type { Project, TaskMetadata } from '../../../shared/types';
+import { writeJsonAtomic } from '../../utils/atomic-write';
 
 export interface SpecCreationData {
   specId: string;
@@ -142,9 +143,9 @@ export function createSpecForIssue(
     status: 'pending',
     phases: []
   };
-  writeFileSync(
+  writeJsonAtomic(
     path.join(specDir, AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN),
-    JSON.stringify(implementationPlan, null, 2)
+    implementationPlan
   );
 
   // requirements.json
@@ -152,9 +153,9 @@ export function createSpecForIssue(
     task_description: taskDescription,
     workflow_type: 'feature'
   };
-  writeFileSync(
+  writeJsonAtomic(
     path.join(specDir, AUTO_BUILD_PATHS.REQUIREMENTS),
-    JSON.stringify(requirements, null, 2)
+    requirements
   );
 
   // Determine category from GitHub issue labels
@@ -167,9 +168,9 @@ export function createSpecForIssue(
     githubUrl,
     category
   };
-  writeFileSync(
+  writeJsonAtomic(
     path.join(specDir, 'task_metadata.json'),
-    JSON.stringify(metadata, null, 2)
+    metadata
   );
 
   return {

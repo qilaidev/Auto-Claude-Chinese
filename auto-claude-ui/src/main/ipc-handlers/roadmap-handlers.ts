@@ -4,10 +4,11 @@ import { IPC_CHANNELS, AUTO_BUILD_PATHS, getSpecsDir, DEFAULT_APP_SETTINGS, DEFA
 import type { IPCResult, Roadmap, RoadmapFeature, RoadmapFeatureStatus, RoadmapGenerationStatus, Task, TaskMetadata, CompetitorAnalysis, AppSettings } from '../../shared/types';
 import type { RoadmapConfig } from '../agent/types';
 import path from 'path';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, mkdirSync, readdirSync } from 'fs';
 import { projectStore } from '../project-store';
 import { AgentManager } from '../agent';
 import { debugLog, debugError } from '../../shared/utils/debug-logger';
+import { writeJsonAtomic } from '../utils/atomic-write';
 
 /**
  * Read feature settings from the settings file
@@ -388,7 +389,7 @@ export function registerRoadmapHandlers(
         existingRoadmap.metadata = existingRoadmap.metadata || {};
         existingRoadmap.metadata.updated_at = new Date().toISOString();
 
-        writeFileSync(roadmapPath, JSON.stringify(existingRoadmap, null, 2));
+        writeJsonAtomic(roadmapPath, existingRoadmap);
 
         return { success: true };
       } catch (error) {
@@ -437,7 +438,7 @@ export function registerRoadmapHandlers(
         roadmap.metadata = roadmap.metadata || {};
         roadmap.metadata.updated_at = new Date().toISOString();
 
-        writeFileSync(roadmapPath, JSON.stringify(roadmap, null, 2));
+        writeJsonAtomic(roadmapPath, roadmap);
 
         return { success: true };
       } catch (error) {
@@ -544,14 +545,14 @@ ${(feature.acceptance_criteria || []).map((c: string) => `- [ ] ${c}`).join('\n'
           status: 'pending',
           phases: []
         };
-        writeFileSync(path.join(specDir, AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN), JSON.stringify(implementationPlan, null, 2));
+        writeJsonAtomic(path.join(specDir, AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN), implementationPlan);
 
         // Create requirements.json
         const requirements = {
           task_description: taskDescription,
           workflow_type: 'feature'
         };
-        writeFileSync(path.join(specDir, AUTO_BUILD_PATHS.REQUIREMENTS), JSON.stringify(requirements, null, 2));
+        writeJsonAtomic(path.join(specDir, AUTO_BUILD_PATHS.REQUIREMENTS), requirements);
 
         // Build metadata
         const metadata: TaskMetadata = {
@@ -559,7 +560,7 @@ ${(feature.acceptance_criteria || []).map((c: string) => `- [ ] ${c}`).join('\n'
           featureId: feature.id,
           category: 'feature'
         };
-        writeFileSync(path.join(specDir, 'task_metadata.json'), JSON.stringify(metadata, null, 2));
+        writeJsonAtomic(path.join(specDir, 'task_metadata.json'), metadata);
 
         // NOTE: We do NOT auto-start spec creation here - user should explicitly start the task
         // from the kanban board when they're ready
@@ -569,7 +570,7 @@ ${(feature.acceptance_criteria || []).map((c: string) => `- [ ] ${c}`).join('\n'
         feature.linked_spec_id = specId;
         roadmap.metadata = roadmap.metadata || {};
         roadmap.metadata.updated_at = new Date().toISOString();
-        writeFileSync(roadmapPath, JSON.stringify(roadmap, null, 2));
+        writeJsonAtomic(roadmapPath, roadmap);
 
         // Create task object
         const task: Task = {

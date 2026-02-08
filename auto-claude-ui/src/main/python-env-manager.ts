@@ -218,7 +218,10 @@ export class PythonEnvManager extends EventEmitter {
     if (!this.autoBuildSourcePath) return false;
 
     const venvPython = this.getVenvPythonPath();
-    const requirementsPath = path.join(this.autoBuildSourcePath, 'requirements.txt');
+    const lockPath = path.join(this.autoBuildSourcePath, 'requirements.lock');
+    const requirementsPath = existsSync(lockPath)
+      ? lockPath
+      : path.join(this.autoBuildSourcePath, 'requirements.txt');
 
     if (!venvPython || !existsSync(venvPython)) {
       this.emit('error', 'Python not found in virtual environment');
@@ -226,7 +229,7 @@ export class PythonEnvManager extends EventEmitter {
     }
 
     if (!existsSync(requirementsPath)) {
-      this.emit('error', 'requirements.txt not found');
+      this.emit('error', 'requirements file not found');
       return false;
     }
 

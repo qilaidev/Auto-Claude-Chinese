@@ -9,6 +9,7 @@ import { fileWatcher } from '../../file-watcher';
 import { findTaskAndProject } from './shared';
 import { checkGitStatus } from '../../project-initializer';
 import { getClaudeProfileManager } from '../../claude-profile-manager';
+import { writeJsonAtomic } from '../../utils/atomic-write';
 
 /**
  * Register task execution handlers (start, stop, review, status management, recovery)
@@ -386,7 +387,7 @@ export function registerTaskExecutionHandlers(
             : 'pending';
           plan.updated_at = new Date().toISOString();
 
-          writeFileSync(planPath, JSON.stringify(plan, null, 2));
+          writeJsonAtomic(planPath, plan);
         } else {
           // If no implementation plan exists yet, create a basic one
           const plan = {
@@ -408,7 +409,7 @@ export function registerTaskExecutionHandlers(
             mkdirSync(specDir, { recursive: true });
           }
 
-          writeFileSync(planPath, JSON.stringify(plan, null, 2));
+          writeJsonAtomic(planPath, plan);
         }
 
         // Auto-start task when status changes to 'in_progress' and no process is running
@@ -645,7 +646,7 @@ export function registerTaskExecutionHandlers(
             }
           }
 
-          writeFileSync(planPath, JSON.stringify(plan, null, 2));
+          writeJsonAtomic(planPath, plan);
         }
 
         // Stop file watcher if it was watching this task
@@ -696,7 +697,7 @@ export function registerTaskExecutionHandlers(
             if (plan) {
               plan.status = 'in_progress';
               plan.planStatus = 'in_progress';
-              writeFileSync(planPath, JSON.stringify(plan, null, 2));
+              writeJsonAtomic(planPath, plan);
             }
 
             // Start the task execution

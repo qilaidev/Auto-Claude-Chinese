@@ -3,10 +3,11 @@ import type { BrowserWindow } from 'electron';
 import { IPC_CHANNELS } from '../../shared/constants';
 import type { IPCResult } from '../../shared/types';
 import path from 'path';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import type { AutoBuildSourceUpdateProgress, SourceEnvConfig, SourceEnvCheckResult } from '../../shared/types';
 import { checkForUpdates as checkSourceUpdates, downloadAndApplyUpdate, getBundledVersion, getEffectiveVersion, getEffectiveSourcePath } from '../auto-claude-updater';
 import { debugLog } from '../../shared/utils/debug-logger';
+import { writeFileAtomic } from '../utils/atomic-write';
 
 
 /**
@@ -258,7 +259,7 @@ export function registerAutobuildSourceHandlers(
           }
         }
 
-        writeFileSync(envPath, outputLines.join('\n'));
+        writeFileAtomic(envPath, outputLines.join('\n'));
 
         return { success: true };
       } catch (error) {

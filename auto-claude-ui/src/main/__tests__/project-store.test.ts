@@ -115,6 +115,7 @@ describe('ProjectStore', () => {
 
       // Check content
       const content = JSON.parse(readFileSync(storePath, 'utf-8'));
+      expect(content.version).toBe(1);
       expect(content.projects).toHaveLength(1);
       expect(content.projects[0].path).toBe(TEST_PROJECT_PATH);
     });

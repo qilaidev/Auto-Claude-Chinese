@@ -2,7 +2,7 @@
  * Update installation and application
  */
 
-import { existsSync, mkdirSync, writeFileSync, rmSync, readdirSync, readFileSync, createReadStream } from 'fs';
+import { existsSync, mkdirSync, rmSync, readdirSync, readFileSync, createReadStream, renameSync } from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 import { app } from 'electron';
@@ -10,10 +10,11 @@ import { GITHUB_CONFIG, PRESERVE_FILES } from './config';
 import { downloadFileWithFallback, fetchJsonWithFallback } from './http-client';
 import { parseVersionFromTag } from './version-manager';
 import { getUpdateCachePath, getUpdateTargetPath } from './path-resolver';
-import { extractTarball, copyDirectoryRecursive, preserveFiles, restoreFiles, cleanTargetDirectory } from './file-operations';
+import { extractTarball, copyDirectoryRecursive, preserveFiles, restoreFiles } from './file-operations';
 import { getCachedRelease, setCachedRelease, clearCachedRelease } from './update-checker';
 import { GitHubRelease, AutoBuildUpdateResult, UpdateProgressCallback, UpdateMetadata, GitHubReleaseAsset } from './types';
 import { debugLog } from '../../shared/utils/debug-logger';
+import { writeJsonAtomic } from '../utils/atomic-write';
 
 /**
  * Download and apply the latest auto-claude update from GitHub Releases
@@ -289,21 +290,59 @@ async function verifyChecksumIfAvailable(
  * Apply update to target directory
  */
 async function applyUpdate(targetPath: string, sourcePath: string): Promise<void> {
-  if (existsSync(targetPath)) {
-    // Preserve important files
-    const preservedContent = preserveFiles(targetPath, PRESERVE_FILES);
+  const parentDir = path.dirname(targetPath);
+  const stagingPath = path.join(parentDir, `.${path.basename(targetPath)}.staging-${Date.now()}`);
+  const backupPath = path.join(parentDir, `.${path.basename(targetPath)}.backup`);
+  let backupCreated = false;
+  let targetSwapped = false;
 
-    // Clean target but preserve certain files
-    cleanTargetDirectory(targetPath, PRESERVE_FILES);
+  try {
+    if (existsSync(stagingPath)) {
+      rmSync(stagingPath, { recursive: true, force: true });
+    }
 
-    // Copy new files
-    copyDirectoryRecursive(sourcePath, targetPath, true);
+    // Stage new files in a temporary directory first
+    mkdirSync(stagingPath, { recursive: true });
+    copyDirectoryRecursive(sourcePath, stagingPath, false);
 
-    // Restore preserved files that might have been overwritten
-    restoreFiles(targetPath, preservedContent);
-  } else {
-    mkdirSync(targetPath, { recursive: true });
-    copyDirectoryRecursive(sourcePath, targetPath, false);
+    // Preserve important files from existing target
+    if (existsSync(targetPath)) {
+      const preservedContent = preserveFiles(targetPath, PRESERVE_FILES);
+      restoreFiles(stagingPath, preservedContent);
+    }
+
+    verifyUpdateLayout(stagingPath);
+
+    // Rotate backup if target exists
+    if (existsSync(targetPath)) {
+      if (existsSync(backupPath)) {
+        rmSync(backupPath, { recursive: true, force: true });
+      }
+      renameSync(targetPath, backupPath);
+      backupCreated = true;
+    }
+
+    // Atomic swap (same parent directory)
+    renameSync(stagingPath, targetPath);
+    targetSwapped = true;
+    verifyUpdateLayout(targetPath);
+  } catch (error) {
+    // Best-effort rollback
+    try {
+      if ((backupCreated || targetSwapped) && existsSync(targetPath)) {
+        rmSync(targetPath, { recursive: true, force: true });
+      }
+      if (backupCreated && existsSync(backupPath)) {
+        renameSync(backupPath, targetPath);
+      }
+    } catch {
+      // Ignore rollback failures
+    }
+    throw error;
+  } finally {
+    if (existsSync(stagingPath)) {
+      rmSync(stagingPath, { recursive: true, force: true });
+    }
   }
 }
 
@@ -312,5 +351,14 @@ async function applyUpdate(targetPath: string, sourcePath: string): Promise<void
  */
 function writeUpdateMetadata(targetPath: string, metadata: UpdateMetadata): void {
   const metadataPath = path.join(targetPath, '.update-metadata.json');
-  writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+  writeJsonAtomic(metadataPath, metadata);
+}
+
+function verifyUpdateLayout(targetPath: string): void {
+  const requiredFiles = ['run.py', 'requirements.txt'];
+  for (const file of requiredFiles) {
+    if (!existsSync(path.join(targetPath, file))) {
+      throw new Error(`Update missing required file: ${file}`);
+    }
+  }
 }

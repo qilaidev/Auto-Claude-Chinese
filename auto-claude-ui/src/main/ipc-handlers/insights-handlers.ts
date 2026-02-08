@@ -1,11 +1,12 @@
 import { ipcMain } from 'electron';
 import type { BrowserWindow } from 'electron';
 import path from 'path';
-import { existsSync, readdirSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, readdirSync, mkdirSync } from 'fs';
 import { IPC_CHANNELS, getSpecsDir, AUTO_BUILD_PATHS } from '../../shared/constants';
 import type { IPCResult, InsightsSession, InsightsSessionSummary, InsightsModelConfig, Task, TaskMetadata } from '../../shared/types';
 import { projectStore } from '../project-store';
 import { insightsService } from '../insights-service';
+import { writeJsonAtomic } from '../utils/atomic-write';
 
 /**
  * Register all insights-related IPC handlers
@@ -134,11 +135,11 @@ export function registerInsightsHandlers(
         };
 
         const planPath = path.join(specDir, AUTO_BUILD_PATHS.IMPLEMENTATION_PLAN);
-        writeFileSync(planPath, JSON.stringify(implementationPlan, null, 2));
+        writeJsonAtomic(planPath, implementationPlan);
 
         // Save task metadata
         const metadataPath = path.join(specDir, 'task_metadata.json');
-        writeFileSync(metadataPath, JSON.stringify(taskMetadata, null, 2));
+        writeJsonAtomic(metadataPath, taskMetadata);
 
         // Create the task object
         const task: Task = {

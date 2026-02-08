@@ -3,6 +3,7 @@ import path from 'path';
 import { existsSync, readFileSync } from 'fs';
 import { app } from 'electron';
 import { EventEmitter } from 'events';
+import { homedir } from 'os';
 import { AgentState } from './agent-state';
 import { AgentEvents } from './agent-events';
 import { ProcessType, ExecutionProgressData } from './types';
@@ -111,6 +112,36 @@ export class AgentProcessManager {
     }
 
     return env;
+  }
+
+  /**
+   * Load auth env vars from ~/.claude/settings.json (third-party auth like yunyi)
+   */
+  private getClaudeSettingsEnv(): Record<string, string> {
+    const settingsPath = path.join(homedir(), '.claude', 'settings.json');
+    if (!existsSync(settingsPath)) {
+      return {};
+    }
+
+    try {
+      const content = readFileSync(settingsPath, 'utf-8');
+      const settings = JSON.parse(content);
+      const envSettings = settings.env || {};
+
+      const result: Record<string, string> = {};
+      if (envSettings.ANTHROPIC_AUTH_TOKEN) {
+        result.ANTHROPIC_AUTH_TOKEN = envSettings.ANTHROPIC_AUTH_TOKEN;
+      }
+      if (envSettings.ANTHROPIC_API_KEY) {
+        result.ANTHROPIC_API_KEY = envSettings.ANTHROPIC_API_KEY;
+      }
+      if (envSettings.ANTHROPIC_BASE_URL) {
+        result.ANTHROPIC_BASE_URL = envSettings.ANTHROPIC_BASE_URL;
+      }
+      return result;
+    } catch {
+      return {};
+    }
   }
 
   /**
@@ -415,10 +446,12 @@ export class AgentProcessManager {
 
   /**
    * Get combined environment variables for a project
+   * Priority: autoBuildEnv < claudeSettingsEnv < projectEnv
    */
   getCombinedEnv(projectPath: string): Record<string, string> {
     const autoBuildEnv = this.loadAutoBuildEnv();
+    const claudeSettingsEnv = this.getClaudeSettingsEnv();
     const projectEnv = this.getProjectEnvVars(projectPath);
-    return { ...autoBuildEnv, ...projectEnv };
+    return { ...autoBuildEnv, ...claudeSettingsEnv, ...projectEnv };
   }
 }
