@@ -26,9 +26,7 @@ from .backup_commands import (
     handle_restore_backup_command,
     resolve_backup_spec_name,
 )
-from .build_commands import handle_build_command
 from .doctor_commands import handle_doctor_command
-from .followup_commands import handle_followup_command
 from .spec_commands import print_specs_list
 from .utils import (
     DEFAULT_MODEL,
@@ -36,13 +34,6 @@ from .utils import (
     get_project_dir,
     print_banner,
     setup_environment,
-)
-from .workspace_commands import (
-    handle_cleanup_worktrees_command,
-    handle_discard_command,
-    handle_list_worktrees_command,
-    handle_merge_command,
-    handle_review_command,
 )
 
 
@@ -368,11 +359,15 @@ def main() -> None:
 
     # Handle --list-worktrees command
     if args.list_worktrees:
+        from .workspace_commands import handle_list_worktrees_command
+
         handle_list_worktrees_command(project_dir)
         return
 
     # Handle --cleanup-worktrees command
     if args.cleanup_worktrees:
+        from .workspace_commands import handle_cleanup_worktrees_command
+
         handle_cleanup_worktrees_command(project_dir)
         return
 
@@ -458,6 +453,8 @@ def main() -> None:
         return
 
     if args.merge:
+        from .workspace_commands import handle_merge_command
+
         success = handle_merge_command(
             project_dir, spec_dir.name, no_commit=args.no_commit
         )
@@ -466,10 +463,14 @@ def main() -> None:
         return
 
     if args.review:
+        from .workspace_commands import handle_review_command
+
         handle_review_command(project_dir, spec_dir.name)
         return
 
     if args.discard:
+        from .workspace_commands import handle_discard_command
+
         handle_discard_command(project_dir, spec_dir.name)
         return
 
@@ -499,6 +500,8 @@ def main() -> None:
 
     # Handle --followup command
     if args.followup:
+        from .followup_commands import handle_followup_command
+
         handle_followup_command(
             project_dir=project_dir,
             spec_dir=spec_dir,
@@ -508,6 +511,8 @@ def main() -> None:
         return
 
     # Normal build flow
+    from .build_commands import handle_build_command
+
     handle_build_command(
         project_dir=project_dir,
         spec_dir=spec_dir,
