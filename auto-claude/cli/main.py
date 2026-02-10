@@ -21,6 +21,11 @@ from ui import (
     icon,
 )
 
+from .backup_commands import (
+    handle_list_backups_command,
+    handle_restore_backup_command,
+    resolve_backup_spec_name,
+)
 from .build_commands import handle_build_command
 from .doctor_commands import handle_doctor_command
 from .followup_commands import handle_followup_command
@@ -165,6 +170,38 @@ Environment Variables:
         help="Discard an existing build (requires confirmation)",
     )
 
+    # Backup management commands
+    backup_group = parser.add_mutually_exclusive_group()
+    backup_group.add_argument(
+        "--list-backups",
+        action="store_true",
+        help="List backup archives for the given spec",
+    )
+    backup_group.add_argument(
+        "--restore-backup",
+        action="store_true",
+        help="Restore spec/worktree data from backup archive",
+    )
+
+    parser.add_argument(
+        "--backup-archive",
+        type=Path,
+        default=None,
+        help="With --restore-backup: archive path (default: latest for spec)",
+    )
+
+    parser.add_argument(
+        "--overwrite-existing",
+        action="store_true",
+        help="With --restore-backup: overwrite existing spec/worktree data",
+    )
+
+    parser.add_argument(
+        "--yes",
+        action="store_true",
+        help="Skip interactive confirmation prompts",
+    )
+
     # Merge options
     parser.add_argument(
         "--no-commit",
@@ -219,7 +256,10 @@ Environment Variables:
     parser.add_argument(
         "--auto-continue",
         action="store_true",
-        help="Non-interactive mode: auto-continue existing builds, skip prompts (for UI integration)",
+        help=(
+            "Non-interactive mode: auto-continue existing builds, "
+            "skip prompts (for UI integration)"
+        ),
     )
 
     # Worktree management
@@ -249,7 +289,37 @@ Environment Variables:
         help="Base branch for creating worktrees (default: auto-detect or current branch)",
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.list_backups or args.restore_backup:
+        incompatible = [
+            ("--merge", args.merge),
+            ("--review", args.review),
+            ("--discard", args.discard),
+            ("--merge-preview", args.merge_preview),
+            ("--qa", args.qa),
+            ("--qa-status", args.qa_status),
+            ("--followup", args.followup),
+            ("--review-status", args.review_status),
+            ("--list", args.list),
+            ("--doctor", args.doctor),
+            ("--list-worktrees", args.list_worktrees),
+            ("--cleanup-worktrees", args.cleanup_worktrees),
+        ]
+        used_incompatible = [flag for flag, enabled in incompatible if enabled]
+        if used_incompatible:
+            parser.error(
+                "--list-backups/--restore-backup cannot be combined with "
+                + ", ".join(used_incompatible)
+            )
+
+        if args.list_backups and args.backup_archive:
+            parser.error("--backup-archive can only be used with --restore-backup")
+
+        if args.list_backups and args.overwrite_existing:
+            parser.error("--overwrite-existing can only be used with --restore-backup")
+
+    return args
 
 
 def _ensure_default_logging_env(project_dir: Path) -> None:
@@ -286,7 +356,8 @@ def main() -> None:
     # Note: --dev flag is deprecated but kept for API compatibility
     if args.dev:
         print(
-            f"\n{icon(Icons.GEAR)} Note: --dev flag is deprecated. All specs now use .auto-claude/specs/\n"
+            f"\n{icon(Icons.GEAR)} Note: --dev flag is deprecated. "
+            "All specs now use .auto-claude/specs/\n"
         )
 
     # Handle --list command
@@ -337,6 +408,34 @@ def main() -> None:
     # Find the spec
     debug("run.py", "Finding spec", spec_identifier=args.spec, dev_mode=args.dev)
     spec_dir = find_spec(project_dir, args.spec, args.dev)
+
+    if args.list_backups or args.restore_backup:
+        try:
+            backup_spec_name = resolve_backup_spec_name(
+                project_dir=project_dir,
+                spec_identifier=args.spec,
+                resolved_spec_dir=spec_dir,
+            )
+        except ValueError as exc:
+            print_banner()
+            print(f"\nError: {exc}")
+            sys.exit(1)
+
+        if args.list_backups:
+            success = handle_list_backups_command(project_dir, backup_spec_name)
+        else:
+            success = handle_restore_backup_command(
+                project_dir=project_dir,
+                spec_name=backup_spec_name,
+                archive=args.backup_archive,
+                overwrite=args.overwrite_existing,
+                auto_confirm=args.yes,
+            )
+
+        if not success:
+            sys.exit(1)
+        return
+
     if not spec_dir:
         debug_error("run.py", "Spec not found", spec=args.spec)
         print_banner()
