@@ -31,6 +31,10 @@ for long-term use without changing its architecture.
   - `AUTO_CLAUDE_DISABLE_AUTO_BACKUP=false` (default) creates pre-delete
     backup archives before `--discard` / `--cleanup-worktrees`.
   - `AUTO_CLAUDE_MAX_BACKUPS_PER_SPEC=20` controls backup retention per spec.
+  - `AUTO_CLAUDE_STATUS_STALE_HOURS=6` defines when an active `.auto-claude-status`
+    should be treated as stale.
+  - `AUTO_CLAUDE_DOCTOR_MIN_FREE_MB=1024` warns when free disk space is low.
+  - `AUTO_CLAUDE_DOCTOR_FAIL_FREE_MB=256` fails preflight when free disk space is critically low.
 - Optional GitHub proxy for updater/source downloads
   (when direct GitHub access is blocked):
   - `AUTO_CLAUDE_GITHUB_PROXY=https://mirror.ghproxy.com`
@@ -94,6 +98,27 @@ python auto-claude/run.py --doctor --spec <spec-id>
 
 # CI strict mode (warnings fail)
 python auto-claude/run.py --doctor --doctor-strict
+```
+
+`--doctor` now includes additional production guardrails:
+
+- Disk capacity threshold checks (warn/fail with configurable MB limits)
+- Stale active status detection for `.auto-claude-status`
+- Merge lock visibility (`.auto-claude/.locks/merge-*.lock` stale/active)
+- Incident webhook hygiene (HTTPS + timeout sanity)
+- Backup retention env validation
+
+If doctor reports stale state/locks:
+
+```bash
+# 1) verify no active build is running
+ps aux | grep "auto-claude/run.py"
+
+# 2) clear stale status marker (safe when no active run)
+rm -f .auto-claude-status
+
+# 3) clear stale merge lock files (safe when no merge running)
+rm -f .auto-claude/.locks/merge-*.lock
 ```
 
 CI baseline:
