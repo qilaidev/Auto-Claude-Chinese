@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from core.auth import get_auth_token, get_auth_token_source
-from core.backup import is_auto_backup_enabled
+from core.backup import is_auto_backup_enabled, list_spec_backups, read_backup_metadata
 from ui import (
     Icons,
     bold,
@@ -73,6 +73,21 @@ def _is_git_dirty(project_dir: Path) -> bool:
     return bool(result.stdout.strip())
 
 
+def _has_branch_namespace_conflict(project_dir: Path) -> bool:
+    """Return whether `auto-claude` branch blocks `auto-claude/*` namespace."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--verify", "auto-claude"],
+            cwd=project_dir,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return False
+    return result.returncode == 0
+
+
 def _probe_writable(dir_path: Path) -> tuple[bool, str]:
     """Probe whether directory is writable by creating and deleting a temp file."""
     probe_file = dir_path / ".doctor-write-check"
@@ -83,6 +98,32 @@ def _probe_writable(dir_path: Path) -> tuple[bool, str]:
         return True, "writable"
     except OSError as exc:
         return False, str(exc)
+
+
+def _check_backup_integrity(project_dir: Path, spec_name: str) -> tuple[str, str]:
+    """Check whether the latest backup archive is readable and matches spec."""
+    backups = list_spec_backups(project_dir, spec_name)
+    if not backups:
+        return "warn", "no backup archive found for this spec"
+
+    latest = backups[0]
+    metadata = read_backup_metadata(latest)
+    if metadata is None:
+        return "fail", f"latest backup unreadable: {latest.name}"
+
+    metadata_spec = str(metadata.get("spec_name", "")).strip()
+    if metadata_spec and metadata_spec != spec_name:
+        return (
+            "fail",
+            "latest backup metadata spec mismatch "
+            f"({metadata_spec} != {spec_name})",
+        )
+
+    contents = metadata.get("contents", [])
+    if not contents:
+        return "warn", f"latest backup missing contents metadata: {latest.name}"
+
+    return "pass", f"latest backup readable: {latest.name}"
 
 
 def run_preflight_checks(
@@ -108,12 +149,20 @@ def run_preflight_checks(
 
     # Runtime baseline
     if sys.version_info >= (3, 10):
-        add("python", "pass", f"Python {sys.version_info.major}.{sys.version_info.minor}")
+        add(
+            "python",
+            "pass",
+            f"Python {sys.version_info.major}.{sys.version_info.minor}",
+        )
     else:
         add("python", "fail", "Python 3.10+ required")
 
     has_git = _has_command("git")
-    add("git", "pass" if has_git else "fail", "git is available" if has_git else "git not found on PATH")
+    add(
+        "git",
+        "pass" if has_git else "fail",
+        "git is available" if has_git else "git not found on PATH",
+    )
 
     has_claude = _has_command("claude")
     add(
@@ -131,6 +180,19 @@ def run_preflight_checks(
         else "project is not a git repository",
     )
 
+    if in_git_repo and _has_branch_namespace_conflict(project_dir):
+        add(
+            "branch_namespace",
+            "warn",
+            "branch 'auto-claude' exists and may block creating auto-claude/* worktree branches",
+        )
+    else:
+        add(
+            "branch_namespace",
+            "pass",
+            "no auto-claude branch namespace conflict detected",
+        )
+
     # Authentication baseline
     token = get_auth_token()
     if token:
@@ -144,7 +206,9 @@ def run_preflight_checks(
     add(
         "project_write",
         "pass" if project_ok else "fail",
-        "project state directory writable" if project_ok else f"project not writable ({project_reason})",
+        "project state directory writable"
+        if project_ok
+        else f"project not writable ({project_reason})",
     )
 
     incident_ok, incident_reason = _probe_writable(
@@ -222,6 +286,9 @@ def run_preflight_checks(
             else f"spec directory not writable ({spec_reason})",
         )
 
+        backup_status, backup_message = _check_backup_integrity(project_dir, spec_dir.name)
+        add("backup_integrity", backup_status, backup_message)
+
     return checks
 
 
@@ -295,4 +362,3 @@ def handle_doctor_command(
         print(f"{icon(Icons.WARNING)} Doctor check requires attention.")
 
     return success
-

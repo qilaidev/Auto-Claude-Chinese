@@ -3,7 +3,10 @@
 Tests for preflight doctor checks.
 """
 
+import subprocess
+
 from cli.doctor_commands import run_preflight_checks
+from core.backup import create_spec_backup
 
 
 def _status_by_name(checks):
@@ -66,3 +69,34 @@ def test_doctor_passes_logging_when_log_dir_configured(temp_git_repo, monkeypatc
     checks = run_preflight_checks(project_dir=temp_git_repo)
     statuses = _status_by_name(checks)
     assert statuses["logging"] == "pass"
+
+
+def test_doctor_warns_branch_namespace_conflict(temp_git_repo):
+    # Simulate conflicting branch name that blocks auto-claude/* namespace.
+    subprocess.run(
+        ["git", "checkout", "-b", "auto-claude"],
+        cwd=temp_git_repo,
+        capture_output=True,
+        check=True,
+    )
+
+    checks = run_preflight_checks(project_dir=temp_git_repo)
+    statuses = _status_by_name(checks)
+    assert statuses["branch_namespace"] == "warn"
+
+
+def test_doctor_checks_backup_integrity(temp_git_repo):
+    spec_name = "001-backup-health"
+    spec_dir = temp_git_repo / ".auto-claude" / "specs" / spec_name
+    spec_dir.mkdir(parents=True)
+    (spec_dir / "spec.md").write_text("# spec\n", encoding="utf-8")
+
+    create_spec_backup(temp_git_repo, spec_name, reason="doctor")
+
+    checks = run_preflight_checks(
+        project_dir=temp_git_repo,
+        spec_dir=spec_dir,
+        spec_identifier=spec_name,
+    )
+    statuses = _status_by_name(checks)
+    assert statuses["backup_integrity"] == "pass"
