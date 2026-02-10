@@ -1,6 +1,10 @@
 # Auto Claude CLI Usage
 
-This document covers terminal-only usage of Auto Claude. **For most users, we recommend using the [Desktop UI](#) instead** - it provides a better experience with visual task management, progress tracking, and automatic Python environment setup.
+This document covers terminal-only usage of Auto Claude.
+
+**For most users, we recommend using the [Desktop UI](#) instead** because it
+provides visual task management, progress tracking, and automatic Python
+environment setup.
 
 ## When to Use CLI
 
@@ -86,6 +90,21 @@ python run.py --spec 001-feature-name
 python run.py --spec 001 --max-iterations 5
 ```
 
+## Production Preflight
+
+Run doctor checks before merging or deploying automation changes:
+
+```bash
+# Project-level readiness
+python run.py --doctor
+
+# Spec-level checks (includes spec lookup + backup integrity)
+python run.py --doctor --spec 001-feature-name
+
+# Strict mode for CI (warnings fail)
+python run.py --doctor --doctor-strict
+```
+
 ## QA Validation
 
 After all chunks are complete, QA validation runs automatically:
@@ -125,6 +144,31 @@ python run.py --spec 001 --merge
 # Discard if you don't like it
 python run.py --spec 001 --discard
 ```
+
+## Backup & Restore
+
+Auto Claude creates backup archives before destructive workspace operations
+(`--discard` and `--cleanup-worktrees`). You can inspect and restore them from CLI.
+
+```bash
+# List backups for a spec (newest first)
+python run.py --spec 001-feature-name --list-backups
+
+# Restore latest backup (interactive confirmation)
+python run.py --spec 001-feature-name --restore-backup
+
+# Restore a specific archive
+python run.py --spec 001-feature-name --restore-backup \
+  --backup-archive .auto-claude/backups/001-feature-name/<archive>.tar.gz
+
+# Force overwrite existing spec/worktree paths
+python run.py --spec 001-feature-name --restore-backup --overwrite-existing --yes
+```
+
+Notes:
+- By default, restore skips existing destination paths to avoid destructive writes.
+- `--overwrite-existing` replaces current spec/worktree paths.
+- For recovery safety, run restore from a clean git working tree.
 
 ## Interactive Controls
 

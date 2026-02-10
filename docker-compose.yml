@@ -66,8 +66,8 @@ services:
       falkordb:
         condition: service_healthy
     healthcheck:
-      # SSE transport doesn't have /health endpoint, check if port is listening
-      test: ["CMD-SHELL", "curl -sf http://localhost:8000/sse --max-time 1 --head 2>/dev/null || exit 0"]
+      # SSE transport may not expose /health; treat request failure as unhealthy
+      test: ["CMD-SHELL", "curl -sf --max-time 2 http://localhost:8000/sse > /dev/null || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

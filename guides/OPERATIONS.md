@@ -24,11 +24,15 @@ for long-term use without changing its architecture.
   - `AUTO_CLAUDE_LOG_LEVEL=INFO`
   - `AUTO_CLAUDE_LOG_MAX_BYTES=5242880`
   - `AUTO_CLAUDE_LOG_BACKUPS=3`
+  - `AUTO_CLAUDE_ALERT_WEBHOOK_URL=<https webhook>` (optional fatal-incident alert)
+  - `AUTO_CLAUDE_ALERT_TIMEOUT_SECONDS=3`
 - Merge and backup safety rails:
   - `AUTO_CLAUDE_ALLOW_DIRTY_MERGE=false` (default) blocks `--merge` when git working tree is dirty.
-  - `AUTO_CLAUDE_DISABLE_AUTO_BACKUP=false` (default) creates pre-delete backup archives before `--discard` / `--cleanup-worktrees`.
+  - `AUTO_CLAUDE_DISABLE_AUTO_BACKUP=false` (default) creates pre-delete
+    backup archives before `--discard` / `--cleanup-worktrees`.
   - `AUTO_CLAUDE_MAX_BACKUPS_PER_SPEC=20` controls backup retention per spec.
-- Optional GitHub proxy for updater/source downloads (when direct GitHub access is blocked):
+- Optional GitHub proxy for updater/source downloads
+  (when direct GitHub access is blocked):
   - `AUTO_CLAUDE_GITHUB_PROXY=https://mirror.ghproxy.com`
   - Set `AUTO_CLAUDE_DISABLE_PROXY_FALLBACK=true` to disable built-in fallback.
 - Optional container image pinning (recommended for long-term stability):
@@ -48,6 +52,7 @@ for long-term use without changing its architecture.
 - **Build status file**: `.auto-claude-status` in the project root.
 - **Per-spec logs**: `.auto-claude/specs/<spec>/task_logs.json`.
 - **Incident reports (fatal errors)**: `.auto-claude/incidents/*.json`.
+- **Optional incident webhook alert**: set `AUTO_CLAUDE_ALERT_WEBHOOK_URL`.
 - **Pre-delete backups**: `.auto-claude/backups/<spec>/*.tar.gz`.
 - **Desktop UI main logs**: OS log directory (`main.log`).
 - **Desktop UI task logs** (per spec): `.auto-claude/specs/<spec>/logs/latest.log`.
@@ -91,6 +96,17 @@ python auto-claude/run.py --doctor --spec <spec-id>
 python auto-claude/run.py --doctor --doctor-strict
 ```
 
+CI baseline:
+
+- `.github/workflows/ci.yml` runs `python auto-claude/run.py --doctor --doctor-strict`.
+- It also runs focused readiness tests:
+  - `tests/test_doctor_commands.py`
+  - `tests/test_backup.py`
+  - `tests/test_backup_commands.py`
+  - `tests/test_incident.py`
+  - `tests/test_workspace_merge_safety.py`
+  - `tests/test_file_io.py`
+
 Graphiti memory (optional):
 
 ```bash
@@ -115,14 +131,34 @@ Auto backup behavior for destructive commands:
 - `python auto-claude/run.py --cleanup-worktrees` now creates per-spec backups by default.
 - Disable only when necessary: `AUTO_CLAUDE_DISABLE_AUTO_BACKUP=true`.
 
+List and inspect backups from CLI:
+
+```bash
+python auto-claude/run.py --spec <spec-id> --list-backups
+```
+
 Restore from an auto-backup archive:
+
+```bash
+# Restore latest archive for spec (prompts for confirmation)
+python auto-claude/run.py --spec <spec-id> --restore-backup
+
+# Restore a specific archive path
+python auto-claude/run.py --spec <spec-id> --restore-backup \
+  --backup-archive .auto-claude/backups/<spec>/<archive>.tar.gz
+
+# Overwrite existing spec/worktree data (non-interactive)
+python auto-claude/run.py --spec <spec-id> --restore-backup --overwrite-existing --yes
+```
+
+Manual extraction (for forensic/debug use) remains available:
 
 ```bash
 mkdir -p restore-spec
 tar -xzf .auto-claude/backups/<spec>/<archive>.tar.gz -C restore-spec
 ```
 
-The extracted folder contains:
+Archive contents:
 
 - `spec/` (spec state, logs, QA artifacts)
 - `worktree/` (worktree snapshot, if present)

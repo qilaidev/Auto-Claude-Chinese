@@ -240,6 +240,8 @@ When your main branch evolves while a build is in progress, Auto Claude automati
 
 For terminal-based workflows, headless servers, or CI/CD integration, see **[guides/CLI-USAGE.md](guides/CLI-USAGE.md)**.
 
+For production operations (preflight checks, backup/restore, rollback guidance), see **[guides/OPERATIONS.md](guides/OPERATIONS.md)**.
+
 ## ⚙️ How It Works
 
 Auto Claude focuses on three core principles: **context engineering** (understanding your codebase before writing code), **good coding standards** (following best practices and patterns), and **validation logic** (ensuring code works before you see it).
