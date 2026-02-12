@@ -85,6 +85,19 @@ def _probe_writable(dir_path: Path) -> tuple[bool, str]:
         return False, str(exc)
 
 
+def _resolve_log_file_path(project_dir: Path) -> Path | None:
+    """Resolve configured operational log file path, if logging is enabled."""
+    log_file = os.environ.get("AUTO_CLAUDE_LOG_FILE", "").strip()
+    log_dir = os.environ.get("AUTO_CLAUDE_LOG_DIR", "").strip()
+    if not log_file and not log_dir:
+        return None
+
+    path = Path(log_file) if log_file else Path(log_dir) / "auto-claude.log"
+    if not path.is_absolute():
+        path = project_dir / path
+    return path
+
+
 def run_preflight_checks(
     project_dir: Path,
     spec_dir: Path | None = None,
@@ -183,11 +196,17 @@ def run_preflight_checks(
     else:
         add("status_file", "pass", "status file not present (will be created at runtime)")
 
-    has_log_config = bool(
-        os.environ.get("AUTO_CLAUDE_LOG_FILE") or os.environ.get("AUTO_CLAUDE_LOG_DIR")
-    )
-    if has_log_config:
-        add("logging", "pass", "operational file logging is configured")
+    log_path = _resolve_log_file_path(project_dir)
+    if log_path is not None:
+        log_dir_ok, log_dir_reason = _probe_writable(log_path.parent)
+        if log_dir_ok:
+            add("logging", "pass", f"operational file logging is configured ({log_path})")
+        else:
+            add(
+                "logging",
+                "fail",
+                f"operational log directory is not writable ({log_dir_reason})",
+            )
     else:
         add("logging", "warn", "operational file logging is not configured")
 
@@ -295,4 +314,3 @@ def handle_doctor_command(
         print(f"{icon(Icons.WARNING)} Doctor check requires attention.")
 
     return success
-
