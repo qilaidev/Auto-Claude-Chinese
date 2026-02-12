@@ -174,6 +174,31 @@ def _resolve_archive_path(
     return archive_path
 
 
+def _prepare_restore_dir(restore_dir: Path, *, replace_existing: bool) -> None:
+    """
+    Prepare restore directory with guardrails against destructive deletion.
+
+    Args:
+        restore_dir: Target extraction directory.
+        replace_existing: Whether existing directory may be replaced.
+            This should only be true for internally generated restore paths.
+    """
+    if restore_dir.exists():
+        if not restore_dir.is_dir():
+            raise ValueError(f"restore_dir is not a directory: {restore_dir}")
+
+        if replace_existing:
+            shutil.rmtree(restore_dir)
+        else:
+            if any(restore_dir.iterdir()):
+                raise ValueError(
+                    "restore_dir already exists and is not empty; "
+                    "refusing to delete existing files"
+                )
+
+    restore_dir.mkdir(parents=True, exist_ok=True)
+
+
 def _validate_member(member: tarfile.TarInfo) -> None:
     """
     Validate archive member metadata to avoid traversal/link extraction attacks.
@@ -213,7 +238,9 @@ def extract_spec_backup(
     project_dir = Path(project_dir)
     archive_path = _resolve_archive_path(project_dir, spec_name, archive)
 
-    if restore_dir is None:
+    generated_restore_dir = restore_dir is None
+
+    if generated_restore_dir:
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         restore_dir = (
             project_dir
@@ -225,10 +252,12 @@ def extract_spec_backup(
     else:
         restore_dir = Path(restore_dir)
 
-    # Recreate target to ensure deterministic contents.
-    if restore_dir.exists():
-        shutil.rmtree(restore_dir)
-    restore_dir.mkdir(parents=True, exist_ok=True)
+    # For generated paths we can replace existing directories safely.
+    # For user-provided paths, refuse destructive deletion.
+    _prepare_restore_dir(
+        restore_dir,
+        replace_existing=generated_restore_dir,
+    )
 
     with tarfile.open(archive_path, mode="r:gz") as tar:
         members = tar.getmembers()

@@ -119,3 +119,32 @@ def test_extract_spec_backup_rejects_symlink_entries(temp_git_repo):
         assert "Link entries are not allowed" in str(exc)
     else:
         raise AssertionError("Expected ValueError for symlink archive member")
+
+
+def test_extract_spec_backup_rejects_non_empty_custom_restore_dir(temp_git_repo):
+    spec_name = "006-backup-custom-restore-guard"
+    spec_dir = temp_git_repo / ".auto-claude" / "specs" / spec_name
+    spec_dir.mkdir(parents=True)
+    (spec_dir / "spec.md").write_text("# spec\n", encoding="utf-8")
+
+    archive_path = create_spec_backup(temp_git_repo, spec_name, reason="restore-guard")
+    assert archive_path is not None
+
+    restore_dir = temp_git_repo / "restore-target"
+    restore_dir.mkdir(parents=True)
+    marker = restore_dir / "do-not-delete.txt"
+    marker.write_text("keep me\n", encoding="utf-8")
+
+    try:
+        extract_spec_backup(
+            temp_git_repo,
+            spec_name,
+            archive=archive_path.name,
+            restore_dir=restore_dir,
+        )
+    except ValueError as exc:
+        assert "refusing to delete existing files" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError for non-empty restore_dir")
+
+    assert marker.exists()
