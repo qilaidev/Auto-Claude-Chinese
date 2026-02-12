@@ -21,6 +21,10 @@ from ui import (
     icon,
 )
 
+from .backup_commands import (
+    handle_list_backups_command,
+    handle_restore_backup_command,
+)
 from .build_commands import handle_build_command
 from .doctor_commands import handle_doctor_command
 from .followup_commands import handle_followup_command
@@ -234,6 +238,30 @@ Environment Variables:
         help="Remove all spec worktrees and their branches (with confirmation)",
     )
 
+    # Backup & restore operations
+    parser.add_argument(
+        "--list-backups",
+        action="store_true",
+        help="List available pre-delete backups for a spec",
+    )
+    parser.add_argument(
+        "--restore-backup",
+        action="store_true",
+        help="Extract a backup archive for a spec into a restore directory",
+    )
+    parser.add_argument(
+        "--backup-archive",
+        type=str,
+        default=None,
+        help="Backup archive file name or absolute path (defaults to latest)",
+    )
+    parser.add_argument(
+        "--restore-dir",
+        type=Path,
+        default=None,
+        help="Directory to extract backup into (default: .auto-claude/restores/<spec>/...)",
+    )
+
     # Force bypass
     parser.add_argument(
         "--force",
@@ -303,6 +331,37 @@ def main() -> None:
     # Handle --cleanup-worktrees command
     if args.cleanup_worktrees:
         handle_cleanup_worktrees_command(project_dir)
+        return
+
+    # Handle backup commands (require --spec)
+    if args.list_backups or args.restore_backup:
+        if not args.spec:
+            print_banner()
+            print("\nError: --spec is required for backup commands")
+            print("\nUsage:")
+            print("  python auto-claude/run.py --spec 001 --list-backups")
+            print(
+                "  python auto-claude/run.py --spec 001 --restore-backup --backup-archive <archive>"
+            )
+            sys.exit(1)
+
+        spec_dir = find_spec(project_dir, args.spec, args.dev)
+        if not spec_dir:
+            print_banner()
+            print(f"\nError: Spec '{args.spec}' not found")
+            sys.exit(1)
+
+        if args.list_backups:
+            success = handle_list_backups_command(project_dir, spec_dir.name)
+        else:
+            success = handle_restore_backup_command(
+                project_dir=project_dir,
+                spec_name=spec_dir.name,
+                archive=args.backup_archive,
+                restore_dir=args.restore_dir,
+            )
+        if not success:
+            sys.exit(1)
         return
 
     # Handle doctor command (spec optional)

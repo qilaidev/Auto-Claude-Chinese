@@ -54,6 +54,23 @@ SDK_ENV_VARS = [
 CLAUDE_SETTINGS_PATH = Path.home() / ".claude" / "settings.json"
 
 
+def _normalize_secret(value: object) -> str | None:
+    """
+    Normalize token-like values from env/config.
+
+    Returns stripped string for non-empty text values, otherwise None.
+    """
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized if normalized else None
+
+
+def _get_clean_env(var_name: str) -> str | None:
+    """Get normalized environment variable value."""
+    return _normalize_secret(os.environ.get(var_name))
+
+
 def get_token_from_keychain() -> str | None:
     """
     Get authentication token from macOS Keychain.
@@ -78,7 +95,7 @@ def get_token_from_keychain() -> str | None:
 
         data = json.loads(credentials_json)
         token = data.get("claudeAiOauth", {}).get("accessToken")
-        return token if token else None
+        return _normalize_secret(token)
 
     except (subprocess.TimeoutExpired, json.JSONDecodeError, Exception):
         return None
@@ -102,9 +119,14 @@ def get_token_from_settings() -> tuple[str | None, str | None]:
             settings = json.load(f)
 
         env_settings = settings.get("env", {})
+        if not isinstance(env_settings, dict):
+            return None, None
         # 优先 ANTHROPIC_AUTH_TOKEN，其次 ANTHROPIC_API_KEY（云翼等第三方渠道）
-        token = env_settings.get("ANTHROPIC_AUTH_TOKEN") or env_settings.get("ANTHROPIC_API_KEY")
-        base_url = env_settings.get("ANTHROPIC_BASE_URL")
+        token = _normalize_secret(
+            env_settings.get("ANTHROPIC_AUTH_TOKEN")
+            or env_settings.get("ANTHROPIC_API_KEY")
+        )
+        base_url = _normalize_secret(env_settings.get("ANTHROPIC_BASE_URL"))
 
         return token, base_url
 
@@ -126,7 +148,7 @@ def get_auth_token() -> str | None:
     """
     # 1. Check environment variables first
     for var in AUTH_TOKEN_ENV_VARS:
-        token = os.environ.get(var)
+        token = _get_clean_env(var)
         if token:
             return token
 
@@ -141,7 +163,7 @@ def get_auth_token() -> str | None:
 
 def get_oauth_token() -> str | None:
     """Get the Claude Code OAuth token (not ANTHROPIC_AUTH_TOKEN)."""
-    token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
+    token = _get_clean_env("CLAUDE_CODE_OAUTH_TOKEN")
     if token:
         return token
 
@@ -150,7 +172,7 @@ def get_oauth_token() -> str | None:
 
 def get_anthropic_auth_token() -> str | None:
     """Get the ANTHROPIC_AUTH_TOKEN from env or settings.json."""
-    token = os.environ.get("ANTHROPIC_AUTH_TOKEN")
+    token = _get_clean_env("ANTHROPIC_AUTH_TOKEN")
     if token:
         return token
 
@@ -162,7 +184,7 @@ def get_auth_token_source() -> str | None:
     """Get the name of the source that provided the auth token."""
     # Check environment variables first
     for var in AUTH_TOKEN_ENV_VARS:
-        if os.environ.get(var):
+        if _get_clean_env(var):
             return f"env:{var}"
 
     # Check settings.json
@@ -217,7 +239,7 @@ def get_sdk_env_vars() -> dict[str, str]:
 
     # Then override with current environment (higher priority)
     for var in SDK_ENV_VARS:
-        value = os.environ.get(var)
+        value = _get_clean_env(var)
         if value:
             env[var] = value
 
@@ -233,16 +255,16 @@ def ensure_claude_code_oauth_token() -> None:
     # Load from settings.json if needed
     settings_token, settings_base_url = get_token_from_settings()
 
-    if not os.environ.get("ANTHROPIC_AUTH_TOKEN") and settings_token:
+    if not _get_clean_env("ANTHROPIC_AUTH_TOKEN") and settings_token:
         os.environ["ANTHROPIC_AUTH_TOKEN"] = settings_token
 
-    if not os.environ.get("ANTHROPIC_BASE_URL") and settings_base_url:
+    if not _get_clean_env("ANTHROPIC_BASE_URL") and settings_base_url:
         os.environ["ANTHROPIC_BASE_URL"] = settings_base_url
 
     # Also set CLAUDE_CODE_OAUTH_TOKEN for SDK compatibility.
     # IMPORTANT: if third-party auth is present, do NOT auto-populate OAuth,
     # otherwise downstream code/CLI may prefer OAuth and fail.
-    if not os.environ.get("CLAUDE_CODE_OAUTH_TOKEN") and not os.environ.get(
+    if not _get_clean_env("CLAUDE_CODE_OAUTH_TOKEN") and not _get_clean_env(
         "ANTHROPIC_AUTH_TOKEN"
     ):
         oauth_token = get_oauth_token()

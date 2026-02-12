@@ -124,6 +124,12 @@ python run.py --spec 001 --merge
 
 # Discard if you don't like it
 python run.py --spec 001 --discard
+
+# List available automatic backups for the spec
+python run.py --spec 001 --list-backups
+
+# Extract latest backup into .auto-claude/restores/<spec>/...
+python run.py --spec 001 --restore-backup
 ```
 
 ## Interactive Controls

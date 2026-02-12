@@ -12,6 +12,7 @@ import io
 import json
 import os
 import re
+import shutil
 import tarfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,6 +20,7 @@ from pathlib import Path
 AUTO_BACKUP_DISABLE_ENV = "AUTO_CLAUDE_DISABLE_AUTO_BACKUP"
 MAX_BACKUPS_ENV = "AUTO_CLAUDE_MAX_BACKUPS_PER_SPEC"
 DEFAULT_MAX_BACKUPS = 20
+_RESTORE_SAFE_ROOTS = {"spec", "worktree", "backup_metadata.json"}
 
 
 def is_auto_backup_enabled() -> bool:
@@ -147,3 +149,91 @@ def create_spec_backup(project_dir: Path, spec_name: str, reason: str) -> Path |
     _prune_old_backups(backup_dir)
     return archive_path
 
+
+def _resolve_archive_path(
+    project_dir: Path, spec_name: str, archive: str | Path | None
+) -> Path:
+    """Resolve an archive path (explicit path or latest backup for spec)."""
+    if archive:
+        candidate = Path(archive)
+        if candidate.is_absolute():
+            archive_path = candidate
+        else:
+            archive_path = get_spec_backups_dir(project_dir, spec_name) / candidate
+    else:
+        backups = list_spec_backups(project_dir, spec_name)
+        if not backups:
+            raise FileNotFoundError(
+                f"No backups found for spec '{spec_name}' in "
+                f"{get_spec_backups_dir(project_dir, spec_name)}"
+            )
+        archive_path = backups[0]
+
+    if not archive_path.exists() or not archive_path.is_file():
+        raise FileNotFoundError(f"Backup archive not found: {archive_path}")
+    return archive_path
+
+
+def _validate_member(member: tarfile.TarInfo) -> None:
+    """
+    Validate archive member metadata to avoid traversal/link extraction attacks.
+    """
+    member_path = Path(member.name)
+    if member_path.is_absolute() or ".." in member_path.parts:
+        raise ValueError(f"Unsafe archive entry: {member.name}")
+
+    top_level = member_path.parts[0] if member_path.parts else ""
+    if top_level not in _RESTORE_SAFE_ROOTS:
+        raise ValueError(f"Unexpected archive entry: {member.name}")
+
+    # Explicitly reject link-like members to avoid writing outside restore_dir.
+    if member.issym() or member.islnk():
+        raise ValueError(f"Link entries are not allowed in backup: {member.name}")
+
+
+def extract_spec_backup(
+    project_dir: Path,
+    spec_name: str,
+    *,
+    archive: str | Path | None = None,
+    restore_dir: Path | None = None,
+) -> Path:
+    """
+    Extract a spec backup archive into a dedicated restore directory.
+
+    Args:
+        project_dir: Project root directory.
+        spec_name: Spec name.
+        archive: Optional archive name/path. When omitted, restore latest backup.
+        restore_dir: Optional extraction destination.
+
+    Returns:
+        Extraction directory path.
+    """
+    project_dir = Path(project_dir)
+    archive_path = _resolve_archive_path(project_dir, spec_name, archive)
+
+    if restore_dir is None:
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        restore_dir = (
+            project_dir
+            / ".auto-claude"
+            / "restores"
+            / _sanitize_label(spec_name)
+            / f"{timestamp}-{archive_path.stem.replace('.tar', '')}"
+        )
+    else:
+        restore_dir = Path(restore_dir)
+
+    # Recreate target to ensure deterministic contents.
+    if restore_dir.exists():
+        shutil.rmtree(restore_dir)
+    restore_dir.mkdir(parents=True, exist_ok=True)
+
+    with tarfile.open(archive_path, mode="r:gz") as tar:
+        members = tar.getmembers()
+        for member in members:
+            _validate_member(member)
+        tar.extractall(path=restore_dir, members=members)
+
+    return restore_dir
