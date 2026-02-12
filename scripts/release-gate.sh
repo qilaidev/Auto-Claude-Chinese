@@ -9,6 +9,7 @@ set -euo pipefail
 # 可选环境变量：
 # - RELEASE_GATE_SKIP_FRONTEND=true   跳过前端检查
 # - RELEASE_GATE_FAST=true            后端仅跑快速测试集（not slow）
+# - RELEASE_GATE_SKIP_SECRETS_SCAN=true 跳过密钥扫描（仅紧急情况）
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND_DIR="$ROOT_DIR/auto-claude"
@@ -50,6 +51,13 @@ pip install -r ../tests/requirements-test.txt
 echo "==> Production preflight doctor (strict)"
 cd "$ROOT_DIR"
 python3 auto-claude/run.py --doctor --doctor-strict
+
+if [[ "${RELEASE_GATE_SKIP_SECRETS_SCAN:-}" == "true" ]]; then
+  echo "==> Secret scan skipped by RELEASE_GATE_SKIP_SECRETS_SCAN=true"
+else
+  echo "==> Security baseline (secret scan)"
+  ./auto-claude/scan-for-secrets --all-files
+fi
 
 echo "==> Backend tests"
 cd "$BACKEND_DIR"

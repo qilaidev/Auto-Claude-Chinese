@@ -21,8 +21,15 @@ We provide an automated script that handles version bumping, git commits, and ta
 
    This command blocks release if any of these fail:
    - `python auto-claude/run.py --doctor --doctor-strict`
+   - `./auto-claude/scan-for-secrets --all-files`
    - Backend tests
    - Frontend lint/typecheck/tests
+
+   如遇紧急场景可临时跳过扫描（不建议常态化）：
+
+   ```bash
+   RELEASE_GATE_SKIP_SECRETS_SCAN=true ./scripts/release-gate.sh
+   ```
 
    If backend dependencies changed before release, refresh lock first:
 
