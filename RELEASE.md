@@ -13,6 +13,23 @@ We provide an automated script that handles version bumping, git commits, and ta
 
 ### Steps
 
+0. **Run production release gate (required):**
+
+   ```bash
+   ./scripts/release-gate.sh
+   ```
+
+   This command blocks release if any of these fail:
+   - `python auto-claude/run.py --doctor --doctor-strict`
+   - Backend tests
+   - Frontend lint/typecheck/tests
+
+   If backend dependencies changed before release, refresh lock first:
+
+   ```bash
+   ./scripts/update-requirements-lock.sh
+   ```
+
 1. **Run the version bump script:**
 
    ```bash
@@ -154,6 +171,7 @@ node scripts/bump-version.js patch
 
 Use this checklist when creating a new release:
 
+- [ ] `./scripts/release-gate.sh` passed
 - [ ] All tests passing on main branch
 - [ ] CHANGELOG updated (if applicable)
 - [ ] Run `node scripts/bump-version.js <type>`

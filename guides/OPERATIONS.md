@@ -24,6 +24,8 @@ for long-term use without changing its architecture.
   - `AUTO_CLAUDE_LOG_LEVEL=INFO`
   - `AUTO_CLAUDE_LOG_MAX_BYTES=5242880`
   - `AUTO_CLAUDE_LOG_BACKUPS=3`
+  - `AUTO_CLAUDE_INCIDENT_WEBHOOK_URL=<your-webhook-url>` (optional, incident push)
+  - `AUTO_CLAUDE_INCIDENT_WEBHOOK_TIMEOUT_SECONDS=3`
 - Merge and backup safety rails:
   - `AUTO_CLAUDE_ALLOW_DIRTY_MERGE=false` (default) blocks `--merge` when git working tree is dirty.
   - `AUTO_CLAUDE_DISABLE_AUTO_BACKUP=false` (default) creates pre-delete backup archives before `--discard` / `--cleanup-worktrees`.
@@ -41,6 +43,7 @@ for long-term use without changing its architecture.
   - `DEBUG_LOG_FILE=auto-claude/debug.log`
 - Dependency pinning (optional but recommended for production):
   - Create `auto-claude/requirements.lock` and keep it in sync with releases.
+  - Refresh lock with: `./scripts/update-requirements-lock.sh`
   - Desktop UI will prefer `requirements.lock` over `requirements.txt` if present.
 
 ## Observability (What to Check)
@@ -91,12 +94,48 @@ python auto-claude/run.py --doctor --spec <spec-id>
 python auto-claude/run.py --doctor --doctor-strict
 ```
 
+Release blocking gate (recommended before every production release):
+
+```bash
+./scripts/release-gate.sh
+```
+
 Graphiti memory (optional):
 
 ```bash
 docker ps --filter name=auto-claude-falkordb
 docker ps --filter name=auto-claude-graphiti-mcp
 ```
+
+### Production Gate (Recommended Before Release)
+
+Run the built-in production gate script from repo root:
+
+```bash
+./scripts/ops/production-ready-check.sh
+```
+
+This script executes:
+
+1. `--doctor --doctor-strict` preflight
+2. secrets scan (`scan-for-secrets --all-files`)
+3. critical regression tests for production paths (`auto-claude/`, worktree safety, backup/restore, security)
+
+Run only the production test suite (without doctor/secrets scan):
+
+```bash
+./scripts/ops/run-production-tests.sh
+```
+
+Local emergency override (not for release): allow doctor warnings while workspace is dirty
+
+```bash
+AUTO_CLAUDE_READY_ALLOW_DIRTY=true ./scripts/ops/production-ready-check.sh
+```
+
+> Why not full test suite by default?  
+> This repository includes legacy/experimental areas and cross-layout compatibility tests.
+> The production gate focuses on release-blocking checks for `auto-claude/` + `auto-claude-ui/`.
 
 ## Backup and Restore
 
@@ -118,8 +157,16 @@ Auto backup behavior for destructive commands:
 Restore from an auto-backup archive:
 
 ```bash
-mkdir -p restore-spec
-tar -xzf .auto-claude/backups/<spec>/<archive>.tar.gz -C restore-spec
+# 查看某个 spec 可用备份（按时间倒序）
+python auto-claude/run.py --spec <spec-id> --list-backups
+
+# 恢复最新备份（默认提取到 .auto-claude/restores/<spec>/...）
+python auto-claude/run.py --spec <spec-id> --restore-backup
+
+# 恢复指定备份到指定目录
+python auto-claude/run.py --spec <spec-id> --restore-backup \
+  --backup-archive <archive-name>.tar.gz \
+  --restore-dir ./restore-spec
 ```
 
 The extracted folder contains:
@@ -127,6 +174,8 @@ The extracted folder contains:
 - `spec/` (spec state, logs, QA artifacts)
 - `worktree/` (worktree snapshot, if present)
 - `backup_metadata.json` (timestamp/reason metadata)
+
+> 恢复命令默认是**非破坏性提取**：先解包到恢复目录，确认无误后再手动拷回线上路径。
 
 ### Backup Desktop UI data (recommended for production use)
 

@@ -132,7 +132,7 @@ class GraphitiClient:
         except ImportError as e:
             logger.warning(
                 f"Graphiti packages not installed: {e}. "
-                "Install with: pip install graphiti-core[falkordb]"
+                "Install with: pip install graphiti-core"
             )
             return False
 

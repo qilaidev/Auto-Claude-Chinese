@@ -88,6 +88,26 @@ if (!python) {
 log(`✅ 使用 Python: ${python.display} (${python.version})`);
 log(`🧪 运行后端测试: ${backendDir}`);
 
+const lockPath = path.join(backendDir, 'requirements.lock');
+const runtimeRequirementsPath = fs.existsSync(lockPath)
+  ? lockPath
+  : path.join(backendDir, 'requirements.txt');
+
+log(`📌 运行时依赖来源: ${path.basename(runtimeRequirementsPath)}`);
+const runtimeInstallResult = spawnSync(
+  python.cmd,
+  [...python.argsPrefix, '-m', 'pip', 'install', '-r', runtimeRequirementsPath],
+  {
+    stdio: 'inherit',
+    cwd: backendDir,
+    windowsHide: true
+  }
+);
+
+if (runtimeInstallResult.status !== 0) {
+  error('运行时依赖安装失败。');
+}
+
 const testRequirementsPath = path.join(__dirname, '..', 'tests', 'requirements-test.txt');
 if (fs.existsSync(testRequirementsPath)) {
   log('📦 安装测试依赖...');

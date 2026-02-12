@@ -31,10 +31,24 @@ QA：
 - `python auto-claude/run.py --spec <spec-id> --qa`
 - `python auto-claude/run.py --spec <spec-id> --qa-status`
 
+生产就绪闸门（发布前建议）：
+- `./scripts/ops/production-ready-check.sh`
+- `./scripts/ops/run-production-tests.sh`（仅执行生产关键回归测试）
+
+备份与恢复：
+- `python auto-claude/run.py --spec <spec-id> --list-backups`
+- `python auto-claude/run.py --spec <spec-id> --restore-backup`
+- `python auto-claude/run.py --spec <spec-id> --restore-backup --backup-archive <archive>`
+
+发布门禁：
+- `./scripts/release-gate.sh`（上线前必须通过）
+- `./scripts/update-requirements-lock.sh`（后端依赖变更后刷新 lock）
+
 ## 常用命令
 后端环境：
 - `cd auto-claude`
-- `uv venv && uv pip install -r requirements.txt`
+- `uv venv && uv pip install -r requirements.lock`（优先）
+- 或 `uv venv && uv pip install -r requirements.txt`
 - 或 `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`
 
 后端测试：
@@ -51,6 +65,7 @@ QA：
 - 任务规范在 `auto-claude/specs/<spec-id>/`。
 - 阶段日志写入 `task_logs.json` 并在 UI 中展示。
 - 工作区隔离在 `.worktrees/<spec-id>/`。
+- 生产就绪闸门脚本在 `scripts/ops/production-ready-check.sh`（覆盖 doctor 严格模式、安全扫描、关键回归测试）。
 
 ## 代码风格
 - Python：类型标注、公共函数/类写 docstring、4 空格缩进。

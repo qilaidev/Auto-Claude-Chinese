@@ -88,7 +88,9 @@ if (!python) {
 log(`✅ 使用 Python: ${python.display} (${python.version})`);
 log(`📦 安装后端依赖: ${backendDir}`);
 
-const requirementsPath = path.join(backendDir, 'requirements.txt');
+const lockPath = path.join(backendDir, 'requirements.lock');
+const requirementsPath = fs.existsSync(lockPath) ? lockPath : path.join(backendDir, 'requirements.txt');
+log(`📌 依赖来源: ${path.basename(requirementsPath)}`);
 const installResult = spawnSync(
   python.cmd,
   [...python.argsPrefix, '-m', 'pip', 'install', '-r', requirementsPath],
