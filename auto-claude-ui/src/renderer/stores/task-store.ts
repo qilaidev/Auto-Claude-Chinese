@@ -183,7 +183,7 @@ export async function loadTasks(projectId: string): Promise<void> {
       store.setError(result.error || '加载任务失败');
     }
   } catch (error) {
-    store.setError(error instanceof Error ? error.message : 'Unknown error');
+    store.setError(error instanceof Error ? error.message : '未知错误');
   } finally {
     store.setLoading(false);
   }
@@ -210,7 +210,7 @@ export async function createTask(
       return null;
     }
   } catch (error) {
-    store.setError(error instanceof Error ? error.message : 'Unknown error');
+    store.setError(error instanceof Error ? error.message : '未知错误');
     return null;
   }
 }
@@ -354,7 +354,7 @@ export async function recoverStuckTask(
     console.error('Error recovering stuck task:', error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : '未知错误'
     };
   }
 }
@@ -388,7 +388,7 @@ export async function deleteTask(
     console.error('Error deleting task:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : '未知错误'
     };
   }
 }
@@ -419,7 +419,7 @@ export async function archiveTasks(
     console.error('Error archiving tasks:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : '未知错误'
     };
   }
 }

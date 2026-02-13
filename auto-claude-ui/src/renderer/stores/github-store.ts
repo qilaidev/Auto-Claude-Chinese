@@ -123,7 +123,7 @@ export async function loadGitHubIssues(projectId: string, state?: 'open' | 'clos
       store.setError(result.error || '加载 GitHub 问题失败');
     }
   } catch (error) {
-    store.setError(error instanceof Error ? error.message : 'Unknown error');
+    store.setError(error instanceof Error ? error.message : '未知错误');
   } finally {
     store.setLoading(false);
   }
@@ -142,7 +142,7 @@ export async function checkGitHubConnection(projectId: string): Promise<GitHubSy
       return null;
     }
   } catch (error) {
-    store.setError(error instanceof Error ? error.message : 'Unknown error');
+    store.setError(error instanceof Error ? error.message : '未知错误');
     return null;
   }
 }
@@ -153,7 +153,7 @@ export function investigateGitHubIssue(projectId: string, issueNumber: number, s
     phase: 'fetching',
     issueNumber,
     progress: 0,
-    message: 'Starting investigation...'
+    message: '正在开始调查...'
   });
   store.setInvestigationResult(null);
 
@@ -176,7 +176,7 @@ export async function importGitHubIssues(
       return false;
     }
   } catch (error) {
-    store.setError(error instanceof Error ? error.message : 'Unknown error');
+    store.setError(error instanceof Error ? error.message : '未知错误');
     return false;
   } finally {
     store.setLoading(false);

@@ -430,25 +430,25 @@ export function generateChangelog(projectId: string): void {
   // Validate based on source mode
   if (store.sourceMode === 'tasks') {
     if (store.selectedTaskIds.length === 0) {
-      store.setError('Please select at least one task to include in the changelog');
+      store.setError('请至少选择一个要包含在变更日志中的任务');
       return;
     }
   } else if (store.sourceMode === 'git-history') {
     if (store.previewCommits.length === 0) {
-      store.setError('No commits found for the selected options. Please adjust your filters.');
+      store.setError('所选条件下未找到提交，请调整筛选条件。');
       return;
     }
   } else if (store.sourceMode === 'branch-diff') {
     if (!store.baseBranch || !store.compareBranch) {
-      store.setError('Please select both base and compare branches');
+      store.setError('请选择基准分支和对比分支');
       return;
     }
     if (store.baseBranch === store.compareBranch) {
-      store.setError('Base and compare branches must be different');
+      store.setError('基准分支和对比分支必须不同');
       return;
     }
     if (store.previewCommits.length === 0) {
-      store.setError('No commits found between the selected branches');
+      store.setError('所选分支之间未找到提交');
       return;
     }
   }
@@ -460,8 +460,8 @@ export function generateChangelog(projectId: string): void {
     progress: 0,
     message:
       store.sourceMode === 'tasks'
-        ? 'Loading task specifications...'
-        : 'Preparing commit data...'
+        ? '正在加载任务规格...'
+        : '正在准备提交数据...'
   });
 
   // Build the generation request based on source mode
@@ -514,7 +514,7 @@ export async function saveChangelog(
   const store = useChangelogStore.getState();
 
   if (!store.generatedChangelog) {
-    store.setError('No changelog to save');
+    store.setError('没有可保存的变更日志');
     return false;
   }
 
@@ -541,7 +541,7 @@ export function copyChangelogToClipboard(): boolean {
   const store = useChangelogStore.getState();
 
   if (!store.generatedChangelog) {
-    store.setError('No changelog to copy');
+    store.setError('没有可复制的变更日志');
     return false;
   }
 

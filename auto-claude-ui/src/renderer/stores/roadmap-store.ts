@@ -258,7 +258,7 @@ export async function loadRoadmap(projectId: string): Promise<void> {
     store.setGenerationStatus({
       phase: 'analyzing',
       progress: 0,
-      message: 'Roadmap generation in progress...'
+      message: '路线图生成进行中...'
     });
   } else {
     // 生成未运行 - 重置为 idle
@@ -307,7 +307,7 @@ export function generateRoadmap(
   useRoadmapStore.getState().setGenerationStatus({
     phase: 'analyzing',
     progress: 0,
-    message: 'Starting roadmap generation...'
+    message: '正在开始生成路线图...'
   });
   window.electronAPI.generateRoadmap(projectId, enableCompetitorAnalysis, refreshCompetitorAnalysis);
 }
@@ -325,7 +325,7 @@ export function refreshRoadmap(
   useRoadmapStore.getState().setGenerationStatus({
     phase: 'analyzing',
     progress: 0,
-    message: 'Refreshing roadmap...'
+    message: '正在刷新路线图...'
   });
   window.electronAPI.refreshRoadmap(projectId, enableCompetitorAnalysis, refreshCompetitorAnalysis);
 }
@@ -343,7 +343,7 @@ export async function stopRoadmap(projectId: string): Promise<boolean> {
   store.setGenerationStatus({
     phase: 'idle',
     progress: 0,
-    message: 'Generation stopped'
+    message: '已停止生成'
   });
 
   const result = await window.electronAPI.stopRoadmap(projectId);

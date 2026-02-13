@@ -116,7 +116,7 @@ export async function loadProjectContext(projectId: string): Promise<void> {
       store.setIndexError(result.error || '加载项目上下文失败');
     }
   } catch (error) {
-    store.setIndexError(error instanceof Error ? error.message : 'Unknown error');
+    store.setIndexError(error instanceof Error ? error.message : '未知错误');
   } finally {
     store.setIndexLoading(false);
     store.setMemoryLoading(false);
@@ -139,7 +139,7 @@ export async function refreshProjectIndex(projectId: string): Promise<void> {
       store.setIndexError(result.error || '刷新项目索引失败');
     }
   } catch (error) {
-    store.setIndexError(error instanceof Error ? error.message : 'Unknown error');
+    store.setIndexError(error instanceof Error ? error.message : '未知错误');
   } finally {
     store.setIndexLoading(false);
   }

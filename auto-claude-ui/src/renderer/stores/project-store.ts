@@ -104,7 +104,7 @@ export async function loadProjects(): Promise<void> {
       store.setError(result.error || '加载项目失败');
     }
   } catch (error) {
-    store.setError(error instanceof Error ? error.message : 'Unknown error');
+    store.setError(error instanceof Error ? error.message : '未知错误');
   } finally {
     store.setLoading(false);
   }
@@ -127,7 +127,7 @@ export async function addProject(projectPath: string): Promise<Project | null> {
       return null;
     }
   } catch (error) {
-    store.setError(error instanceof Error ? error.message : 'Unknown error');
+    store.setError(error instanceof Error ? error.message : '未知错误');
     return null;
   }
 }
@@ -225,7 +225,7 @@ export async function initializeProject(
     return null;
   } catch (error) {
     console.error('[ProjectStore] Exception during initializeProject:', error);
-    store.setError(error instanceof Error ? error.message : 'Unknown error');
+    store.setError(error instanceof Error ? error.message : '未知错误');
     return null;
   }
 }
@@ -246,7 +246,7 @@ export async function updateProjectAutoBuild(
     store.setError(result.error || '更新失败 auto-claude');
     return null;
   } catch (error) {
-    store.setError(error instanceof Error ? error.message : 'Unknown error');
+    store.setError(error instanceof Error ? error.message : '未知错误');
     return null;
   }
 }

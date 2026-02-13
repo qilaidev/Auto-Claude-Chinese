@@ -241,7 +241,7 @@ export function sendMessage(projectId: string, message: string, modelConfig?: In
   store.clearToolsUsed(); // Clear tools from previous response
   store.setStatus({
     phase: 'thinking',
-    message: 'Processing your message...'
+    message: '正在处理你的消息...'
   });
 
   // Use provided modelConfig, or fall back to session's config
@@ -353,7 +353,7 @@ export function setupInsightsListeners(): () => void {
             store().setCurrentTool(null); // Clear tool when receiving text
             store().setStatus({
               phase: 'streaming',
-              message: 'Receiving response...'
+              message: '正在接收响应...'
             });
           }
           break;

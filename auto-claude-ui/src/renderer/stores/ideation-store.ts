@@ -352,11 +352,11 @@ export function generateIdeation(projectId: string): void {
   store.clearLogs();
   store.clearSession(); // 清除现有会话以重新生成
   store.initializeTypeStates(config.enabledTypes);
-  store.addLog('Starting ideation generation in parallel...');
+  store.addLog('正在并行开始创意生成...');
   store.setGenerationStatus({
     phase: 'generating',
     progress: 0,
-    message: `Generating ${config.enabledTypes.length} ideation types in parallel...`
+    message: `正在并行生成 ${config.enabledTypes.length} 类创意...`
   });
   window.electronAPI.generateIdeation(projectId, config);
 }
@@ -371,11 +371,11 @@ export async function stopIdeation(projectId: string): Promise<boolean> {
 
   // 无论后端响应如何，用户请求停止时始终将 UI 状态更新为 'idle'
   // 这可防止进程已结束时 UI 卡在“生成中”状态
-  store.addLog('Stopping ideation generation...');
+  store.addLog('正在停止创意生成...');
   store.setGenerationStatus({
     phase: 'idle',
     progress: 0,
-    message: 'Generation stopped'
+    message: '已停止生成'
   });
 
   const result = await window.electronAPI.stopIdeation(projectId);
@@ -387,9 +387,9 @@ export async function stopIdeation(projectId: string): Promise<boolean> {
 
   if (!result.success) {
     // 后端找不到/无法停止该进程（可能已完成/崩溃）
-    store.addLog('Process already stopped');
+    store.addLog('流程已停止');
   } else {
-    store.addLog('Ideation generation stopped');
+    store.addLog('创意生成已停止');
   }
 
   return result.success;
@@ -405,11 +405,11 @@ export async function refreshIdeation(projectId: string): Promise<void> {
   store.clearLogs();
   store.clearSession(); // 清除现有会话以重新生成
   store.initializeTypeStates(config.enabledTypes);
-  store.addLog('Refreshing ideation in parallel...');
+  store.addLog('正在并行刷新创意...');
   store.setGenerationStatus({
     phase: 'generating',
     progress: 0,
-    message: `Refreshing ${config.enabledTypes.length} ideation types in parallel...`
+    message: `正在并行刷新 ${config.enabledTypes.length} 类创意...`
   });
   window.electronAPI.refreshIdeation(projectId, config);
 }
@@ -419,7 +419,7 @@ export async function dismissAllIdeasForProject(projectId: string): Promise<bool
   const result = await window.electronAPI.dismissAllIdeas(projectId);
   if (result.success) {
     store.dismissAllIdeas();
-    store.addLog('All ideas dismissed');
+    store.addLog('所有想法已忽略');
   }
   return result.success;
 }
@@ -429,7 +429,7 @@ export async function archiveIdeaForProject(projectId: string, ideaId: string): 
   const result = await window.electronAPI.archiveIdea(projectId, ideaId);
   if (result.success) {
     store.archiveIdea(ideaId);
-    store.addLog('Idea archived');
+    store.addLog('想法已归档');
   }
   return result.success;
 }
@@ -439,7 +439,7 @@ export async function deleteIdeaForProject(projectId: string, ideaId: string): P
   const result = await window.electronAPI.deleteIdea(projectId, ideaId);
   if (result.success) {
     store.deleteIdea(ideaId);
-    store.addLog('Idea deleted');
+    store.addLog('想法已删除');
   }
   return result.success;
 }
@@ -474,11 +474,11 @@ export function appendIdeation(projectId: string, typesToAdd: IdeationType[]): v
   });
   store.initializeTypeStates(typesToAdd);
 
-  store.addLog(`Adding ${typesToAdd.length} new ideation types...`);
+  store.addLog(`正在新增 ${typesToAdd.length} 类创意...`);
   store.setGenerationStatus({
     phase: 'generating',
     progress: 0,
-    message: `Generating ${typesToAdd.length} additional ideation types...`
+    message: `正在生成 ${typesToAdd.length} 类新增创意...`
   });
 
   // 使用追加模式调用生成，并仅传入新增类型
@@ -590,7 +590,7 @@ export function setupIdeationListeners(): () => void {
       }
 
       store().addIdeasForType(ideationType, ideas);
-      store().addLog(`✓ ${ideationType} completed with ${ideas.length} ideas`);
+      store().addLog(`✓ ${ideationType} 已完成，生成 ${ideas.length} 条想法`);
 
       // 根据已完成的类型更新进度
       const typeStates = store().typeStates;
@@ -606,7 +606,7 @@ export function setupIdeationListeners(): () => void {
       store().setGenerationStatus({
         phase: 'generating',
         progress,
-        message: `${completedCount}/${totalTypes} ideation types complete`
+        message: `${completedCount}/${totalTypes} 类创意已完成`
       });
     }
   );
@@ -620,7 +620,7 @@ export function setupIdeationListeners(): () => void {
       }
 
       store().setTypeState(ideationType as IdeationType, 'failed');
-      store().addLog(`✗ ${ideationType} failed`);
+      store().addLog(`✗ ${ideationType} 生成失败`);
     }
   );
 
@@ -643,9 +643,9 @@ export function setupIdeationListeners(): () => void {
     store().setGenerationStatus({
       phase: 'complete',
       progress: 100,
-      message: 'Ideation complete'
+      message: '创意生成完成'
     });
-    store().addLog('Ideation generation complete!');
+    store().addLog('创意生成完成！');
   });
 
   // 监听错误
@@ -661,7 +661,7 @@ export function setupIdeationListeners(): () => void {
       message: '',
       error
     });
-    store().addLog(`Error: ${error}`);
+    store().addLog(`错误：${error}`);
   });
 
   // 监听停止事件
@@ -669,9 +669,9 @@ export function setupIdeationListeners(): () => void {
     store().setGenerationStatus({
       phase: 'idle',
       progress: 0,
-      message: 'Generation stopped'
+      message: '已停止生成'
     });
-    store().addLog('Ideation generation stopped');
+    store().addLog('创意生成已停止');
   });
 
   // 返回清理函数

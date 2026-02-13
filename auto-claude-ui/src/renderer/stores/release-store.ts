@@ -123,7 +123,7 @@ export async function runPreflightCheck(projectId: string): Promise<void> {
   const version = store.selectedVersion;
   
   if (!version) {
-    store.setError('No version selected');
+    store.setError('未选择版本');
     return;
   }
 
@@ -152,14 +152,14 @@ export function createRelease(projectId: string): void {
   const version = store.selectedVersion;
   
   if (!version) {
-    store.setError('No version selected');
+    store.setError('未选择版本');
     return;
   }
 
   // Find the version to get its content
   const versionInfo = store.releaseableVersions.find(v => v.version === version);
   if (!versionInfo) {
-    store.setError('Version not found');
+    store.setError('未找到版本');
     return;
   }
 
@@ -168,7 +168,7 @@ export function createRelease(projectId: string): void {
   store.setReleaseProgress({
     stage: 'checking',
     progress: 0,
-    message: 'Starting release...'
+    message: '正在开始发布...'
   });
 
   window.electronAPI.createRelease({

@@ -109,7 +109,7 @@ export const useFileExplorerStore = create<FileExplorerState>((set, get) => ({
 
       return result.data;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
       set((state) => {
         const newLoading = new Map(state.isLoading);
         newLoading.set(dirPath, false);
