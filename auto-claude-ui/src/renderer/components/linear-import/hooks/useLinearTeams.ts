@@ -25,7 +25,7 @@ export function useLinearTeams(projectId: string, open: boolean) {
           setError(result.error || '加载团队失败');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        setError(err instanceof Error ? err.message : '未知错误');
       } finally {
         setIsLoadingTeams(false);
       }

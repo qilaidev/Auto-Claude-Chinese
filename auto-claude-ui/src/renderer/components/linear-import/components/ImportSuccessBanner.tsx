@@ -17,14 +17,14 @@ export function ImportSuccessBanner({ importResult, onClose }: ImportSuccessBann
       <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
       <div className="flex-1">
         <p className="text-sm font-medium text-success">
-          Successfully imported {importResult.imported} task{importResult.imported !== 1 ? 's' : ''}
+          成功导入 {importResult.imported} 个任务
         </p>
         <p className="text-xs text-success/80 mt-1">
-          Tasks are being processed. Check your Kanban board for progress.
+          任务正在处理中。请在看板中查看进度。
         </p>
       </div>
       <Button variant="outline" size="sm" onClick={onClose}>
-        Close
+        关闭
       </Button>
     </div>
   );

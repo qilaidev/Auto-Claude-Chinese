@@ -39,10 +39,10 @@ export function SelectionControls({
           ) : (
             <Square className="h-4 w-4" />
           )}
-          {isAllSelected ? 'Deselect all' : 'Select all'}
+          {isAllSelected ? '取消全选' : '全选'}
         </button>
         <span className="text-xs text-muted-foreground">
-          {selectedCount} of {filteredCount} selected
+          已选择 {selectedCount}/{filteredCount}
         </span>
       </div>
 
@@ -52,7 +52,7 @@ export function SelectionControls({
         disabled={isLoadingIssues}
       >
         <RefreshCw className={`h-3 w-3 ${isLoadingIssues ? 'animate-spin' : ''}`} />
-        Refresh
+        刷新
       </button>
     </div>
   );

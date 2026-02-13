@@ -242,7 +242,7 @@ export function useTaskDetail({ task }: UseTaskDetailOptions) {
     }
   }, [task.id]);
 
-  // Auto-load merge preview when worktree is ready (eliminates need to click "Check Conflicts")
+  // Auto-load merge preview when worktree is ready (eliminates need to click "检查冲突")
   // NOTE: This must be placed AFTER loadMergePreview definition since it depends on that callback
   useEffect(() => {
     // Only auto-load if:

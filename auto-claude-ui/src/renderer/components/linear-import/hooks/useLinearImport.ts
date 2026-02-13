@@ -36,7 +36,7 @@ export function useLinearImport(
           setError(result.error || '导入问题失败');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        setError(err instanceof Error ? err.message : '未知错误');
       } finally {
         setIsImporting(false);
       }

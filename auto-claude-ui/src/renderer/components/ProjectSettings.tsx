@@ -112,7 +112,7 @@ export function ProjectSettings({ project, open, onOpenChange }: ProjectSettings
         setError(result?.error || '初始化失败');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : '未知错误');
     } finally {
       setIsUpdating(false);
     }
@@ -131,7 +131,7 @@ export function ProjectSettings({ project, open, onOpenChange }: ProjectSettings
         setError(result?.error || '更新失败');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : '未知错误');
     } finally {
       setIsUpdating(false);
     }
@@ -160,7 +160,7 @@ export function ProjectSettings({ project, open, onOpenChange }: ProjectSettings
 
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : '未知错误');
     } finally {
       setIsSaving(false);
     }
@@ -289,18 +289,18 @@ export function ProjectSettings({ project, open, onOpenChange }: ProjectSettings
 
         <DialogFooter className="shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            取消
           </Button>
           <Button onClick={handleSave} disabled={isSaving || isSavingEnv}>
             {isSaving || isSavingEnv ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                保存中...
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                Save Settings
+                保存设置
               </>
             )}
           </Button>

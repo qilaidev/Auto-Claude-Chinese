@@ -21,11 +21,11 @@ export const STATUS_COLORS: Record<TerminalStatus, string> = {
 };
 
 export const PHASE_CONFIG: Record<ExecutionPhase, { label: string; color: string; icon: React.ElementType }> = {
-  idle: { label: 'Ready', color: 'bg-muted text-muted-foreground', icon: Circle },
-  planning: { label: 'Planning', color: 'bg-info/20 text-info', icon: Search },
-  coding: { label: 'Coding', color: 'bg-primary/20 text-primary', icon: Code2 },
-  qa_review: { label: 'QA Review', color: 'bg-warning/20 text-warning', icon: Search },
-  qa_fixing: { label: 'Fixing', color: 'bg-warning/20 text-warning', icon: Wrench },
-  complete: { label: 'Complete', color: 'bg-success/20 text-success', icon: CheckCircle2 },
-  failed: { label: 'Failed', color: 'bg-destructive/20 text-destructive', icon: AlertCircle },
+  idle: { label: '就绪', color: 'bg-muted text-muted-foreground', icon: Circle },
+  planning: { label: '规划中', color: 'bg-info/20 text-info', icon: Search },
+  coding: { label: '编码中', color: 'bg-primary/20 text-primary', icon: Code2 },
+  qa_review: { label: '质量审查', color: 'bg-warning/20 text-warning', icon: Search },
+  qa_fixing: { label: '修复中', color: 'bg-warning/20 text-warning', icon: Wrench },
+  complete: { label: '完成', color: 'bg-success/20 text-success', icon: CheckCircle2 },
+  failed: { label: '失败', color: 'bg-destructive/20 text-destructive', icon: AlertCircle },
 };

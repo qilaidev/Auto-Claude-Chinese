@@ -53,7 +53,7 @@ export function useSettings() {
         return false;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : '未知错误');
       return false;
     } finally {
       setIsSaving(false);

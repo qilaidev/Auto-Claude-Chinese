@@ -61,10 +61,10 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 const PHASE_LABELS: Record<keyof PhaseModelConfig, { label: string; description: string }> = {
-  spec: { label: 'Spec Creation', description: 'Discovery, requirements, context gathering' },
-  planning: { label: 'Planning', description: 'Implementation planning and architecture' },
-  coding: { label: 'Coding', description: 'Actual code implementation' },
-  qa: { label: 'QA Review', description: 'Quality assurance and validation' }
+  spec: { label: '规格创建', description: '发现、需求与上下文收集' },
+  planning: { label: '规划中', description: '实现规划与架构设计' },
+  coding: { label: '编码中', description: '实际代码实现' },
+  qa: { label: '质量审查', description: '质量保证与验证' }
 };
 
 export function AgentProfileSelector({
@@ -137,8 +137,8 @@ export function AgentProfileSelector({
     if (isCustom) {
       return {
         icon: Sliders,
-        label: 'Custom Configuration',
-        description: 'Choose model & thinking level'
+        label: '自定义配置',
+        description: '选择模型与思考等级'
       };
     }
     const profile = DEFAULT_AGENT_PROFILES.find(p => p.id === profileId);
@@ -152,8 +152,8 @@ export function AgentProfileSelector({
     // Default to balanced
     return {
       icon: Scale,
-      label: 'Balanced',
-      description: 'Good balance of speed and quality'
+      label: '均衡',
+      description: '速度与质量的良好平衡'
     };
   };
 
@@ -161,10 +161,10 @@ export function AgentProfileSelector({
 
   return (
     <div className="space-y-4">
-      {/* Agent Profile Selection */}
+      {/* 智能体配置选择 */}
       <div className="space-y-2">
         <Label htmlFor="agent-profile" className="text-sm font-medium text-foreground">
-          Agent Profile
+          智能体配置
         </Label>
         <Select
           value={profileId}
@@ -191,7 +191,7 @@ export function AgentProfileSelector({
                       <span className="font-medium">{profile.name}</span>
                       <span className="ml-2 text-xs text-muted-foreground">
                         {profile.isAutoProfile
-                          ? '(per-phase optimization)'
+                          ? '（按阶段优化）'
                           : `(${modelLabel} + ${profile.thinkingLevel})`
                         }
                       </span>
@@ -325,7 +325,7 @@ export function AgentProfileSelector({
         </div>
       )}
 
-      {/* Custom Configuration (shown only when custom is selected) */}
+      {/* 自定义配置（仅在选择 custom 时显示） */}
       {isCustom && (
         <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
           {/* Model Selection */}

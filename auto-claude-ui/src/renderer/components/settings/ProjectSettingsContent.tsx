@@ -31,8 +31,8 @@ export function ProjectSettingsContent({
   if (!project) {
     return (
       <SettingsSection
-        title="No Project Selected"
-        description="Select a project from the dropdown above to configure its settings"
+        title="未选择项目"
+        description="请从上方下拉框选择一个项目以配置其设置"
       >
         <EmptyProjectState />
       </SettingsSection>

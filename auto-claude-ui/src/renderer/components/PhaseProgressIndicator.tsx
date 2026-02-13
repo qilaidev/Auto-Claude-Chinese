@@ -13,13 +13,13 @@ interface PhaseProgressIndicatorProps {
 
 // Phase display configuration
 const PHASE_CONFIG: Record<ExecutionPhase, { label: string; color: string; bgColor: string }> = {
-  idle: { label: 'Idle', color: 'bg-muted-foreground', bgColor: 'bg-muted' },
-  planning: { label: 'Planning', color: 'bg-amber-500', bgColor: 'bg-amber-500/20' },
-  coding: { label: 'Coding', color: 'bg-info', bgColor: 'bg-info/20' },
-  qa_review: { label: 'Reviewing', color: 'bg-purple-500', bgColor: 'bg-purple-500/20' },
-  qa_fixing: { label: 'Fixing', color: 'bg-orange-500', bgColor: 'bg-orange-500/20' },
-  complete: { label: 'Complete', color: 'bg-success', bgColor: 'bg-success/20' },
-  failed: { label: 'Failed', color: 'bg-destructive', bgColor: 'bg-destructive/20' },
+  idle: { label: '空闲', color: 'bg-muted-foreground', bgColor: 'bg-muted' },
+  planning: { label: '规划中', color: 'bg-amber-500', bgColor: 'bg-amber-500/20' },
+  coding: { label: '编码中', color: 'bg-info', bgColor: 'bg-info/20' },
+  qa_review: { label: '审查中', color: 'bg-purple-500', bgColor: 'bg-purple-500/20' },
+  qa_fixing: { label: '修复中', color: 'bg-orange-500', bgColor: 'bg-orange-500/20' },
+  complete: { label: '完成', color: 'bg-success', bgColor: 'bg-success/20' },
+  failed: { label: '失败', color: 'bg-destructive', bgColor: 'bg-destructive/20' },
 };
 
 /**
@@ -66,7 +66,7 @@ export function PhaseProgressIndicator({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
-            {isStuck ? 'Interrupted' : showSubtaskProgress ? 'Progress' : config.label}
+            {isStuck ? '已中断' : showSubtaskProgress ? '进度' : config.label}
           </span>
           {/* Activity indicator dot for non-coding phases */}
           {isRunning && !isStuck && isIndeterminatePhase && (
@@ -89,7 +89,7 @@ export function PhaseProgressIndicator({
             `${subtaskProgress}%`
           ) : activeEntries > 0 ? (
             <span className="text-muted-foreground">
-              {activeEntries} {activeEntries === 1 ? 'entry' : 'entries'}
+              {activeEntries} {activeEntries === 1 ? '条记录' : '条记录'}
             </span>
           ) : (
             '—'

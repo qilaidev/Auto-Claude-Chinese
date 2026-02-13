@@ -1,7 +1,6 @@
 /**
- * Refactored Linear Task Import Modal
- * Main modal component that orchestrates the import workflow
- * Uses extracted hooks and components for better maintainability
+ * Linear 任务导入弹窗（重构版）
+ * 负责组织导入流程，组合各子组件与 hooks。
  */
 
 import { Download, Loader2 } from 'lucide-react';
@@ -72,14 +71,14 @@ export function LinearTaskImportModalRefactored({
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 text-foreground">
             <Download className="h-5 w-5" />
-            Import Linear Tasks
+            导入 Linear 任务
           </DialogTitle>
           <DialogDescription>
-            Select tasks from Linear to import into AutoBuild
+            从 Linear 选择任务导入 AutoBuild
           </DialogDescription>
         </DialogHeader>
 
-        {/* Import Success Banner */}
+        {/* 导入成功提示 */}
         {importResult?.success && (
           <ImportSuccessBanner
             importResult={importResult}
@@ -143,7 +142,7 @@ export function LinearTaskImportModalRefactored({
 
         <DialogFooter className="shrink-0">
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
-            {importResult?.success ? 'Done' : 'Cancel'}
+            {importResult?.success ? '完成' : '取消'}
           </Button>
           {!importResult?.success && (
             <Button
@@ -153,13 +152,12 @@ export function LinearTaskImportModalRefactored({
               {isImporting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Importing...
+                  导入中...
                 </>
               ) : (
                 <>
                   <Download className="mr-2 h-4 w-4" />
-                  Import {selectedIssueIds.size} Task
-                  {selectedIssueIds.size !== 1 ? 's' : ''}
+                  导入 {selectedIssueIds.size} 个任务
                 </>
               )}
             </Button>

@@ -34,7 +34,7 @@ export function useLinearProjects(
           setError(result.error || '加载项目失败');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        setError(err instanceof Error ? err.message : '未知错误');
       } finally {
         setIsLoadingProjects(false);
       }

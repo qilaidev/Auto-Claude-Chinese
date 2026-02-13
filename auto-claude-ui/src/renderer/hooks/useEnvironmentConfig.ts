@@ -21,7 +21,7 @@ export function useEnvironmentConfig(projectId: string, autoBuildPath: string | 
             setEnvError(result.error || '加载环境配置失败');
           }
         } catch (err) {
-          setEnvError(err instanceof Error ? err.message : 'Unknown error');
+          setEnvError(err instanceof Error ? err.message : '未知错误');
         } finally {
           setIsLoadingEnv(false);
         }
@@ -37,7 +37,7 @@ export function useEnvironmentConfig(projectId: string, autoBuildPath: string | 
   };
 
   const saveEnvConfig = async () => {
-    if (!envConfig) return { success: false, error: 'No config to save' };
+    if (!envConfig) return { success: false, error: '没有可保存的配置' };
 
     setIsSavingEnv(true);
     setEnvError(null);
@@ -49,7 +49,7 @@ export function useEnvironmentConfig(projectId: string, autoBuildPath: string | 
       }
       return { success: true };
     } catch (err) {
-      const error = err instanceof Error ? err.message : 'Unknown error';
+      const error = err instanceof Error ? err.message : '未知错误';
       setEnvError(error);
       return { success: false, error };
     } finally {

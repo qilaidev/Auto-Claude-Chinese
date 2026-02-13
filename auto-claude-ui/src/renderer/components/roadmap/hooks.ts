@@ -148,7 +148,7 @@ export function useRoadmapGeneration(projectId: string) {
     }
   };
 
-  // Handler for "Yes, Enable Analysis" (new competitor analysis)
+  // Handler for "是，启用分析" (new competitor analysis)
   const handleCompetitorDialogAccept = () => {
     if (pendingAction === 'generate') {
       generateRoadmap(projectId, true); // Enable competitor analysis
@@ -158,7 +158,7 @@ export function useRoadmapGeneration(projectId: string) {
     setPendingAction(null);
   };
 
-  // Handler for "No, Skip Analysis"
+  // Handler for "否，跳过分析"
   const handleCompetitorDialogDecline = () => {
     if (pendingAction === 'generate') {
       generateRoadmap(projectId, false); // Disable competitor analysis
@@ -168,7 +168,7 @@ export function useRoadmapGeneration(projectId: string) {
     setPendingAction(null);
   };
 
-  // Handler for "Use existing analysis" - reuses saved competitor data
+  // Handler for "使用已有分析" - reuses saved competitor data
   const handleUseExistingAnalysis = () => {
     // Enable competitor analysis but don't force refresh - backend will use existing if available
     if (pendingAction === 'generate') {
@@ -179,7 +179,7 @@ export function useRoadmapGeneration(projectId: string) {
     setPendingAction(null);
   };
 
-  // Handler for "Run new analysis" - performs fresh web searches
+  // Handler for "运行新分析" - performs fresh web searches
   const handleRunNewAnalysis = () => {
     // Enable competitor analysis AND force refresh to run fresh web searches
     if (pendingAction === 'generate') {
@@ -190,7 +190,7 @@ export function useRoadmapGeneration(projectId: string) {
     setPendingAction(null);
   };
 
-  // Handler for "Skip analysis"
+  // Handler for "跳过分析"
   const handleSkipAnalysis = () => {
     if (pendingAction === 'generate') {
       generateRoadmap(projectId, false);

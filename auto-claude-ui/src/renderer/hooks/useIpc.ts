@@ -97,7 +97,7 @@ export function useIpcListeners(): void {
           useRoadmapStore.getState().setGenerationStatus({
             phase: 'complete',
             progress: 100,
-            message: 'Roadmap ready'
+            message: '路线图已就绪'
           });
         }
       }
@@ -118,7 +118,7 @@ export function useIpcListeners(): void {
           useRoadmapStore.getState().setGenerationStatus({
             phase: 'error',
             progress: 0,
-            message: 'Generation failed',
+            message: '生成失败',
             error
           });
         }
@@ -129,7 +129,7 @@ export function useIpcListeners(): void {
       (projectId: string) => {
         // Debug logging
         if (window.DEBUG) {
-          console.log('[Roadmap] Generation stopped:', {
+          console.log('[Roadmap] 已停止生成:', {
             projectId,
             currentProjectId: useRoadmapStore.getState().currentProjectId
           });
@@ -139,7 +139,7 @@ export function useIpcListeners(): void {
           useRoadmapStore.getState().setGenerationStatus({
             phase: 'idle',
             progress: 0,
-            message: 'Generation stopped'
+            message: '已停止生成'
           });
         }
       }

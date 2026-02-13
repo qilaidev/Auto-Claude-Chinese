@@ -82,7 +82,7 @@ export function usePtyProcess({
           }
           onCreated?.();
         } else {
-          onError?.(result.error || 'Unknown error');
+          onError?.(result.error || '未知错误');
         }
         isCreatingRef.current = false;
       }).catch((err) => {

@@ -137,7 +137,7 @@ export function StagedInProjectMessage({ task, projectPath, hasWorktree = false,
         <p className="text-xs text-muted-foreground mb-2">下一步：</p>
         <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
           <li>使用 <code className="bg-background px-1 rounded">git status</code> 和 <code className="bg-background px-1 rounded">git diff --staged</code> 查看暂存更改</li>
-          <li>确认无误后提交：<code className="bg-background px-1 rounded">git commit -m "your message"</code></li>
+          <li>确认无误后提交：<code className="bg-background px-1 rounded">git commit -m "你的提交信息"</code></li>
           <li>满意后推送到远端</li>
         </ol>
       </div>

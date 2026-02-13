@@ -42,7 +42,7 @@ export function useLinearIssues(
           setError(result.error || '加载问题失败');
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        setError(err instanceof Error ? err.message : '未知错误');
       } finally {
         setIsLoadingIssues(false);
       }

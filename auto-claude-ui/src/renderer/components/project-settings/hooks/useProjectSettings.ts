@@ -153,7 +153,7 @@ export function useProjectSettings(
             setEnvError(result.error || '加载环境配置失败');
           }
         } catch (err) {
-          setEnvError(err instanceof Error ? err.message : 'Unknown error');
+          setEnvError(err instanceof Error ? err.message : '未知错误');
         } finally {
           setIsLoadingEnv(false);
         }
@@ -259,7 +259,7 @@ export function useProjectSettings(
         setError(result?.error || '初始化失败');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : '未知错误');
     } finally {
       setIsUpdating(false);
     }
@@ -277,7 +277,7 @@ export function useProjectSettings(
         setError(result?.error || '更新失败');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : '未知错误');
     } finally {
       setIsUpdating(false);
     }
@@ -294,7 +294,7 @@ export function useProjectSettings(
         setEnvError(result.error || '保存环境配置失败');
       }
     } catch (err) {
-      setEnvError(err instanceof Error ? err.message : 'Unknown error');
+      setEnvError(err instanceof Error ? err.message : '未知错误');
     } finally {
       setIsSavingEnv(false);
     }
@@ -339,7 +339,7 @@ export function useProjectSettings(
 
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : '未知错误');
     } finally {
       setIsSaving(false);
     }

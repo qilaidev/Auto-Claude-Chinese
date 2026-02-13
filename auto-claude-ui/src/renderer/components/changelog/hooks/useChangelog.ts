@@ -139,10 +139,10 @@ export function useChangelog() {
             setGenerationProgress({
               stage: 'complete',
               progress: 100,
-              message: 'Changelog generated successfully!'
+              message: '变更日志生成成功！'
             });
           } else {
-            setError(result.error || 'Generation failed');
+            setError(result.error || '生成失败');
           }
         }
       }
