@@ -1,3 +1,18 @@
+## 2.6.7 - Documentation: GEO/SEO Overhaul + first tagged release
+
+### 📝 Documentation
+
+- **`llms.txt`** — AI search engine index covering Chinese-fork value-add (44 translated prompts, local Claude CLI auth re-use, automatic English fallback), upstream attribution, and FAQ.
+- **README — bilingual title + keyword block** + Release / English / 简体中文 / llms.txt / Changelog / Upstream nav row.
+
+### 📦 Versioning
+
+- First tagged release. Internal `package.json` was already at 2.6.6 from upstream-sync work but no git tag existed. This release codifies a stable v2.6.7 baseline that downstream forks/integrations can pin.
+
+### Notes
+
+Behavior, prompts, agent pipeline, and CLI surface unchanged from latest `main` commit. This is a documentation + first-tag release.
+
 ## 2.6.0 - Improved User Experience and Agent Configuration
 
 ### ✨ New Features

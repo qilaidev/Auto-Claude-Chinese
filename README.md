@@ -1,4 +1,10 @@
-# Auto-Claude-Chinese
+# Auto-Claude-Chinese · Claude Code SDK 多代理自主编码框架中文版
+
+[![Release](https://img.shields.io/github/v/release/tytsxai/Auto-Claude-Chinese)](https://github.com/tytsxai/Auto-Claude-Chinese/releases) · [English](README.en.md) · [简体中文](README.zh-CN.md) · [llms.txt](llms.txt) · [Changelog](CHANGELOG.md) · [Upstream (Auto-Claude)](https://github.com/AndyMik90/Auto-Claude)
+
+> **关键词**:Auto-Claude 中文版 · Claude Code 多代理自主编码 · Claude SDK 中文提示词 · 44 个中文 Agent 提示词 · 复用本地 claude CLI 认证 · 云翼 Claude 适配 · Git worktree 隔离多代理 · 中文 AI 编程代理
+>
+> **Keywords**: Auto-Claude Chinese fork · Claude Code SDK Chinese prompts · Chinese AI coding agent · Cursor alternative Claude Chinese · multi-agent autonomous coding Chinese · local Claude CLI auth reuse
 
 > Language / 语言：**[English](README.en.md)** | **[简体中文](README.zh-CN.md)**
 >

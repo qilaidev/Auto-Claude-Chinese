@@ -1,0 +1,56 @@
+# Auto-Claude-Chinese
+
+> Chinese-localized fork of [Auto-Claude](https://github.com/AndyMik90/Auto-Claude) — a multi-agent autonomous-coding framework using the Claude Code SDK. Adds: 44 Chinese-translated agent prompts (24 core + 20 GitHub PR review), default `PROMPT_LANGUAGE=zh-CN` with automatic English fallback when a Chinese version is missing, and direct reuse of the local `claude` CLI authentication (no separate API key step). Same architecture as upstream: spec → plan → code → QA → merge pipeline running inside isolated git worktrees.
+
+The fork's two-line pitch: **"Auto-Claude in your own language, on your existing Claude CLI auth."** No i18n framework — straight translations of UI text and prompts. The fork tracks upstream: merge upstream code first, then re-translate any new prompts.
+
+## Key docs
+
+- [README.md](README.md): Mixed-language overview (kept for backwards links).
+- [README.zh-CN.md](README.zh-CN.md): 简体中文 README.
+- [README.en.md](README.en.md): English README.
+- [CHANGELOG.md](CHANGELOG.md): Version history.
+- [RELEASE.md](RELEASE.md): Release process (`scripts/bump-version.js`).
+- [CLAUDE.md](CLAUDE.md): Architecture + workflow + Chinese-fork notes for Claude Code.
+- `scripts/i18n/README.md`: Chinese-prompt maintenance scripts.
+- Upstream: https://github.com/AndyMik90/Auto-Claude
+
+## What this fork adds vs upstream
+
+- **44 Chinese-translated prompts** under `auto-claude/prompts/` (planner, coder, qa_reviewer, qa_fixer, spec_*, PR review prompts, etc.)
+- **`PROMPT_LANGUAGE=zh-CN` default** in `auto-claude/prompts_pkg/prompt_loader.py`
+- **Automatic English fallback** when a Chinese version is missing for a prompt
+- **Local `claude` CLI auth re-use** via `auto-claude/core/auth.py`:
+  1. `CLAUDE_CODE_OAUTH_TOKEN` env (official OAuth)
+  2. `~/.claude/settings.json` (third-party gateways like 云翼 / Yunyi)
+  3. macOS Keychain (official OAuth auto-stored)
+  → No need to set `ANTHROPIC_API_KEY` separately
+
+## What this fork does NOT change vs upstream
+
+- Same multi-agent pipeline (Discovery → Requirements → [Research] → Context → Spec → Plan → Code → QA → Merge)
+- Same git-worktree isolation per spec branch (`auto-claude/<spec-name>`)
+- Same security model (OS sandbox + filesystem restriction + command allowlist)
+- Same memory layer (file-based + optional FalkorDB Graphiti)
+- Same Electron UI (`auto-claude-ui/`)
+
+## Common questions
+
+- **How is this different from Auto-Codex?** Auto-Claude-Chinese uses the **Claude Code SDK** as the agent backend. Auto-Codex (sibling project) uses **OpenAI Codex CLI**. Architecture and pipeline are otherwise identical.
+- **Do I need to set an API key?** Usually no — if you've used the Claude CLI on this machine, Auto-Claude-Chinese reuses that auth. Only needed for headless CI or non-CLI users.
+- **Will my main branch be touched?** No. Every build runs in `.worktrees/<spec-name>/` on branch `auto-claude/<spec-name>`. Nothing pushed until you `--merge` + `git push` yourself.
+- **Can I switch back to English prompts?** Yes — `PROMPT_LANGUAGE=en` in `auto-claude/.env`.
+- **Does it support 云翼 / Yunyi or other third-party Claude gateways?** Yes — `~/.claude/settings.json` is one of the auth sources; gateway tokens stored there are picked up automatically.
+- **How do I upgrade when upstream releases new prompts?** Merge upstream → run the `scripts/i18n/` tooling to flag untranslated prompts → translate manually → PR. See `scripts/i18n/README.md`.
+
+## Repository
+
+- GitHub: https://github.com/tytsxai/Auto-Claude-Chinese
+- Upstream: https://github.com/AndyMik90/Auto-Claude
+- License: see LICENSE
+- Stack: Python 3.12+ (Claude Code SDK backend), Electron + TypeScript + React (Auto-Claude UI), optional FalkorDB Graphiti memory
+- Author: tytsxai (fork) · AndyMik90 (upstream)
+
+## Useful search phrases
+
+- Auto-Claude 中文版, Auto-Claude Chinese, Claude Code 自主编码 中文提示词, Claude SDK 中文版, 中文 AI 编程代理, Claude CLI 本地认证 自动复用, 云翼 Claude Auto-Claude, Yunyi Claude Auto-Claude, 多代理自主编码 中文, Claude Code multi-agent 中文 fork, autonomous coding agent Chinese prompts, Claude SDK Chinese localization, Cursor 中文替代 Claude, Cursor alternative Claude Chinese
