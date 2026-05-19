@@ -400,3 +400,7 @@ This software is licensed under AGPL-3.0, which means:
 **In simple terms**: You can use Auto Claude freely, but if you build on it, your code must also be open source under AGPL-3.0 and attribute this project. Closed-source commercial use requires a separate license.
 
 For commercial licensing inquiries (closed-source usage), please contact the maintainers.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=tytsxai/Auto-Claude-Chinese&type=Date)](https://www.star-history.com/#tytsxai/Auto-Claude-Chinese&Date)
