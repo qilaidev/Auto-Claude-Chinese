@@ -9,7 +9,7 @@ on:
 jobs:
   # Python linting
   python:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -34,7 +34,7 @@ jobs:
 
   # TypeScript/React linting
   frontend:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout

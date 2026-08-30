@@ -9,7 +9,7 @@ on:
 jobs:
   # Python tests
   test-python:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -60,7 +60,7 @@ jobs:
 
   # Frontend tests
   test-frontend:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
