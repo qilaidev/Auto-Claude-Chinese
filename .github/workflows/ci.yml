@@ -71,10 +71,19 @@ jobs:
         with:
           node-version: '20'
 
+      # 不用 pnpm/action-setup@v4：它的自安装器在 runner 强制的 Node 24 下跑完
+      # 不报错，却不生成任何二进制（~/setup-pnpm/node_modules/.bin 是空目录），
+      # 下一步直接 "pnpm: command not found"。
+      #
+      # corepack 是 Node 自带的官方入口，而且它读 auto-claude-ui/package.json
+      # 里的 "packageManager": "pnpm@10.26.1" —— 原来写死 version: 9 反而跟
+      # pnpm 10 生成的锁文件对不上，--frozen-lockfile 早晚要炸。
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
+        working-directory: auto-claude-ui
+        run: |
+          corepack enable pnpm
+          corepack prepare --activate
+          pnpm --version
 
       - name: Install dependencies
         working-directory: auto-claude-ui
